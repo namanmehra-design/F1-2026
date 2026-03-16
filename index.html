@@ -330,9 +330,13 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 #drv-headshot{
   position:absolute;right:0;top:0;bottom:0;width:50%;z-index:1;
   background-size:contain;background-position:bottom right;background-repeat:no-repeat;
-  -webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.5) 45%,transparent 80%);
-  mask-image:linear-gradient(to left,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.5) 45%,transparent 80%);
   transition:background-image .3s ease;
+  /* NO mask-image - Safari bug: mask breaks overflow:hidden containment */
+}
+/* Gradient overlay fades headshot to left - sibling div approach */
+#drv-headshot-fade{
+  position:absolute;right:0;top:0;bottom:0;width:55%;z-index:2;pointer-events:none;
+  background:linear-gradient(to right,#050508 0%,rgba(5,5,8,0.7) 30%,transparent 70%);
 }
 #drv-hero-glow{position:absolute;inset:0;opacity:.12;transition:all .5s;pointer-events:none;}
 #drv-num-bg{
@@ -346,7 +350,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   height:100%;padding:20px 24px;gap:16px;
   width:58%;
 }
-.drv-logo-ring{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--tc);background:#000;flex-shrink:0;transition:border-color .3s,box-shadow .3s;overflow:hidden;}
+.drv-logo-ring{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--tc);background:#fff;flex-shrink:0;transition:border-color .3s,box-shadow .3s;overflow:hidden;}
 .drv-hero-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:48px;line-height:1;letter-spacing:-1px;text-transform:uppercase;}
 .drv-hero-team{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;transition:color .3s;}
 .drv-hero-meta{font-size:10px;color:var(--muted);margin-top:3px;}
@@ -502,8 +506,8 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 ═══════════════════════════════════════ */
 
 
-#drv-logo-img{mix-blend-mode:multiply;filter:contrast(1.1);}
-.drv-btn img{mix-blend-mode:multiply;}
+#drv-logo-img{object-fit:contain;}
+.drv-btn img{object-fit:contain;}
 
 @media (max-width: 900px) {
 
@@ -626,6 +630,8 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 
   /* Modal */
   #modal-box { width: 96% !important; max-height: 88vh !important; }
+  #drv-headshot { width: 50% !important; }
+  #drv-headshot-fade { width: 60% !important; background: linear-gradient(to right, #050508 0%, rgba(5,5,8,0.6) 25%, transparent 65%) !important; }
 }
 </style>
 </head>
@@ -795,8 +801,10 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
       <div id="drv-hero-glow"></div>
       <!-- Big number background -->
       <div id="drv-num-bg">—</div>
-      <!-- Driver headshot - absolute right side -->
+      <!-- Driver headshot - absolute right side (no mask-image - Safari bug) -->
       <div id="drv-headshot"></div>
+      <!-- Gradient overlay fades headshot (replaces mask-image) -->
+      <div id="drv-headshot-fade"></div>
       <!-- Main content row - left side -->
       <div class="drv-hero-inner">
         <div class="drv-logo-ring" id="drv-logo-ring">
@@ -1825,8 +1833,9 @@ function renderDriverSidebar(){
   el.innerHTML=DRV_S.map(function(d){
     var t=TEAMS_S[d.team], tclr=t?t.color:'#444';
     var lurl=TEAM_LOGOS[d.team];
-    var badge='<div style="width:14px;height:28px;border-radius:3px;background:'+tclr+';flex-shrink:0;margin-left:auto;opacity:0.9"></div>';
-    if(lurl) badge='<img src="'+lurl+'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;margin-left:auto;opacity:0.85" onerror="this.style.display=\'none\'"/>';
+    // Team color bar on right - always reliable
+    var badge='<div style="width:4px;height:28px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-left:auto;opacity:1"></div>';
+    if(lurl) badge='<div style="width:28px;height:28px;border-radius:6px;background:#fff;flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;overflow:hidden;"><img src="'+lurl+'" style="width:85%;height:85%;object-fit:contain" onerror="this.parentElement.style.background=\''+tclr+'\';this.remove()"/></div>';
     return '<div class="drv-btn" id="db-'+d.id+'" data-id="'+d.id+'">' +
       '<div style="width:3px;height:36px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-right:2px"></div>' +
       '<div class="drv-num" style="color:rgba(255,255,255,.15)">'+d.num+'</div>' +
