@@ -36,7 +36,6 @@
   --map-land: #c8d4e8;
   --map-border: #b0bcd4;
   --map-grat: #c8d0de;
-  --pill-bg: rgba(0,0,0,0.07);
 }
 
 body.dark-mode {
@@ -57,7 +56,6 @@ body.dark-mode {
   --map-land: #1C1C24;
   --map-border: #2A2A35;
   --map-grat: #15151A;
-  --pill-bg: rgba(255,255,255,0.07);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -100,6 +98,8 @@ body {
 .nav-item.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(225,6,0,0.04); }
 
 #topbar-right { display:flex; align-items:center; gap:10px; margin-left:auto; }
+
+/* THEME TOGGLE BUTTON */
 #theme-toggle { background:var(--surface2); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; color:var(--text); transition:0.2s; }
 #theme-toggle:hover { background:var(--surface3); }
 
@@ -117,8 +117,8 @@ body {
 /* ═══════════════════════════════════════
    LAYOUT & SCROLL ZONES
 ═══════════════════════════════════════ */
-#app { height:calc(100vh - 58px); display:flex; flex:1; overflow:hidden; }
-.page { display:none; flex:1; width:100%; height:100%; overflow:hidden; animation:fadein 0.25s ease; }
+#app { height:calc(100vh - 58px); display:flex; flex:1; overflow:hidden; min-height:0; }
+.page { display:none; flex:1; width:100%; height:100%; overflow:hidden; min-height:0; animation:fadein 0.25s ease; }
 .page.active { display:flex; }
 @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 .panel-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface); flex-shrink:0; }
@@ -126,11 +126,11 @@ body {
 
 /* Ensure major sidebar and content zones don't expand infinitely */
 #home-left, #home-center, #results-sidebar, #results-main, #drivers-sidebar, #drivers-main, #page-analysis {
-  height: 100%; display: flex; flex-direction: column; overflow: hidden;
+  height: 100%; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
 }
 
 /* Ensure scrolling panels shrink to fit */
-#race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #analysis-inner, #page-standings {
+#race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #analysis-inner, #page-standings, #wdc-list, #wcc-list {
   flex: 1; overflow-y: auto; min-height: 0;
 }
 
@@ -139,7 +139,7 @@ body {
 ═══════════════════════════════════════ */
 #page-home { flex-direction:row; }
 #home-left { width:340px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); }
-#home-center { flex:1; position:relative; background:var(--map-water); transition: background-color 0.3s; }
+#home-center { flex:1; position:relative; background:var(--map-water); transition: background-color 0.3s; min-width:0; }
 
 #season-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:16px; flex-shrink:0; }
 .s-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; transition:0.2s; }
@@ -241,7 +241,6 @@ body {
 .std-panel { display:flex; flex-direction:column; background:var(--bg); min-height:0; }
 .std-panel-head { padding:14px 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; position:sticky; top:0; z-index:5; flex-shrink:0;}
 .std-panel-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:2px; color:var(--text2); }
-#wdc-list, #wcc-list { flex:1; overflow-y:auto; }
 .std-list { padding:12px; }
 .std-row { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; margin-bottom:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow-sm); }
 .std-row:hover { transform:translateY(-1px); box-shadow:var(--shadow); border-color:var(--border-strong); }
@@ -286,7 +285,7 @@ body {
 
 /* REVERTED DRIVER HERO - CARD STYLE */
 #drv-hero { display: flex; height: 200px; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--surface); overflow: hidden; }
-#drv-hero-left { flex: 1; padding: 24px 30px; display: flex; flex-direction: column; justify-content: center; z-index: 2; position: relative; }
+#drv-hero-left { flex: 1; padding: 24px 30px; display: flex; flex-direction: column; justify-content: center; z-index: 2; position: relative; background: var(--surface); transition: background-color 0.3s; }
 #drv-hero-right { width: 45%; position: relative; display: flex; justify-content: flex-end; align-items: flex-end; padding-right: 30px; transition: background-color 0.3s; }
 #drv-headshot { width: 100%; height: 110%; background-size: contain; background-position: bottom right; background-repeat: no-repeat; z-index: 2; }
 .drv-logo-ring { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--tc); background: var(--surface); box-shadow: var(--shadow); flex-shrink: 0; }
@@ -342,7 +341,6 @@ body {
 /* ═══════════════════════════════════════
    ANALYSIS
 ═══════════════════════════════════════ */
-#page-analysis { background:var(--bg); }
 .analysis-header { padding:20px 28px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
 .analysis-header h2 { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--text); }
 .analysis-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
@@ -1697,8 +1695,20 @@ function loadDriver(id) {
   
   var ring=document.getElementById('drv-logo-ring'),li=document.getElementById('drv-logo-img'),ls=document.getElementById('drv-logo-svg');
   if(ring){ring.style.borderColor=clr;
-    if(TEAM_LOGOS[d.team]&&li){if(ls)ls.style.display='none';li.style.display='none';li.onerror=function(){li.style.display='none';if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}};li.onload=function(){li.style.display='block';};li.src=TEAM_LOGOS[d.team];}
-    else{if(li)li.style.display='none';if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}}}
+    if(TEAM_LOGOS[d.team]&&li){
+      ls.style.display='none';
+      li.style.display='block';
+      li.onerror=function(){
+        li.style.display='none';
+        if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}
+      };
+      li.src=TEAM_LOGOS[d.team];
+    }
+    else{
+      if(li)li.style.display='none';
+      if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}
+    }
+  }
   
   setText('drv-hero-name', d.surname);
   var teamEl = document.getElementById('drv-hero-team');
