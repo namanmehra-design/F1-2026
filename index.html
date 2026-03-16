@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GRID 2026 | F1 Live Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,600;0,700;0,900;1,700;1,900&family=Barlow:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
@@ -159,10 +161,16 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 .badge-soon{background:rgba(255,128,0,.1);color:#FF8000;}
 
 /* Center: world map */
-#home-center{flex:1;position:relative;background:#050508;overflow:hidden;}
+#home-center{flex:1;position:relative;background:#06060c;overflow:hidden;}
 #map-svg-wrap{width:100%;height:100%;position:absolute;inset:0;}
 #map-svg-wrap svg{width:100%;height:100%;}
 .map-path{fill:#14141c;stroke:#1e1e28;stroke-width:.4;}
+.country{fill:#10121e;stroke:#252838;stroke-width:0.4;transition:fill 0.2s;}
+.country:hover{fill:#1c1f30;}
+.sphere{fill:#06060c;}
+.graticule{fill:none;stroke:#0e1018;stroke-width:0.3;}
+.flight-arc{fill:none;stroke-dasharray:6 4;animation:fldash 3s linear infinite;}
+@keyframes fldash{to{stroke-dashoffset:-200;}}
 .race-pin{cursor:pointer;}
 .race-pin:hover .pin-dot{filter:brightness(1.5);}
 @keyframes nextpulse{0%,100%{r:8;opacity:1}50%{r:11;opacity:.5}}
@@ -1315,92 +1323,176 @@ function unhiPin(rnd) { var p = document.getElementById('map-pin-' + rnd); if(p)
 function buildMap() {
   var wrap = document.getElementById('map-svg-wrap');
   if (!wrap) return;
-  var W = 1000, H = 500;
-  function ll(lat, lng) { return {x:(lng+180)/360*W, y:(90-lat)/180*H}; }
+  wrap.innerHTML = '<div class="loading-state" style="height:100%"><div class="spin"></div><span>Loading map...</span></div>';
 
-  var continents =
-    '<path class="map-path" d="M495 90C500 85 520 80 540 85C560 88 580 82 600 88C620 94 640 88 650 95C658 100 660 110 655 120C648 132 640 140 630 148C618 157 608 165 600 172C592 179 585 188 575 192C562 197 548 195 535 190C522 185 510 178 502 168C494 158 490 145 488 132C486 118 489 102 495 90Z"/>' +
-    '<path class="map-path" d="M528 210C535 205 548 202 558 208C568 214 572 226 570 238C568 250 560 260 550 265C540 270 528 267 520 260C512 252 510 240 512 228C514 217 522 214 528 210Z"/>' +
-    '<path class="map-path" d="M160 90C170 78 195 70 220 75C245 80 262 95 268 112C274 128 268 148 258 162C248 176 232 184 215 185C198 186 182 178 172 165C160 150 152 130 152 112C152 102 155 96 160 90Z"/>' +
-    '<path class="map-path" d="M178 200C190 192 212 190 230 196C248 202 260 218 262 235C264 252 255 268 242 277C228 286 210 287 196 280C182 273 174 257 172 242C170 226 168 207 178 200Z"/>' +
-    '<path class="map-path" d="M185 295C192 285 208 280 222 283C238 287 248 300 250 315C252 330 246 345 236 354C226 362 212 364 200 358C188 352 182 338 180 324C178 310 178 304 185 295Z"/>' +
-    '<path class="map-path" d="M380 80C390 68 415 62 440 68C465 74 482 90 488 108C494 126 488 148 475 162C462 175 442 180 422 176C402 172 386 158 378 140C370 122 368 98 380 80Z"/>' +
-    '<path class="map-path" d="M395 200C405 188 428 185 450 192C472 198 485 218 485 238C485 258 472 275 455 280C438 285 420 278 408 265C396 252 390 232 390 215C390 208 392 204 395 200Z"/>' +
-    '<path class="map-path" d="M600 80C615 68 645 65 672 72C700 80 718 98 720 120C722 142 708 162 690 172C672 182 650 182 632 172C614 162 600 142 598 122C596 104 596 88 600 80Z"/>' +
-    '<path class="map-path" d="M650 200C665 190 690 188 712 198C734 208 745 230 742 252C739 274 722 290 702 293C682 296 662 286 650 270C638 254 635 232 638 215C640 208 644 204 650 200Z"/>' +
-    '<path class="map-path" d="M750 340C762 328 788 325 810 332C832 340 845 360 845 382C845 404 832 422 815 428C798 434 778 428 765 416C752 404 745 384 745 368C745 358 748 348 750 340Z"/>' +
-    '<path class="map-path" d="M820 200C835 190 860 185 882 192C905 200 918 220 918 242C918 264 904 282 886 288C868 294 848 285 836 270C824 255 818 232 820 215C820 208 820 204 820 200Z"/>';
+  // Load real world topography
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(function(world) {
+    wrap.innerHTML = '';
+    var W = wrap.clientWidth || 1000;
+    var H = wrap.clientHeight || 500;
 
-  var pins = S.schedule.filter(function(r) { return r.lat; }).map(function(r) {
-    var p = ll(r.lat, r.lng);
-    var clr = r.status === 'completed' ? '#22c55e' : r.status === 'next' ? '#E10600' : '#FF8000';
-    var cls = 'race-pin' + (r.status === 'next' ? ' pin-next' : '');
-    var check = S.raceResults[r.round] ? '<text x="-3" y="3.5" font-size="8" fill="#111" font-weight="900" text-anchor="middle">\u2713</text>' : '';
-    var pulse = r.status === 'next' ? '<circle r="7" cx="0" cy="0" fill="transparent" stroke="'+clr+'" stroke-width="1"><animate attributeName="r" from="7" to="22" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.8" to="0" dur="2s" repeatCount="indefinite"/></circle>' : '';
-    return '<g id="map-pin-'+r.round+'" class="' + cls + '" data-rnd="' + r.round + '" transform="translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')" style="cursor:pointer">' +
-      pulse +
-      '<circle class="pin-dot" r="6" cx="0" cy="0" fill="' + clr + '" stroke="rgba(0,0,0,.8)" stroke-width="1.5"/>' + check +
-      '<text x="10" y="4" font-size="12" fill="white">' + r.flag + '</text>' +
-      '</g>';
-  }).join('');
+    var projection = d3.geoNaturalEarth1()
+      .scale(W / 6.3)
+      .translate([W / 2, H / 2]);
 
-  // Flight path from last completed to next race
-  var flightPath = '';
-  var lastDone = S.schedule.slice().reverse().find(function(r){return r.status==='completed';});
-  var nextUp = S.schedule.find(function(r){return r.status==='next';});
-  if(lastDone && nextUp && lastDone.lat && nextUp.lat) {
-    var p1=ll(lastDone.lat,lastDone.lng), p2=ll(nextUp.lat,nextUp.lng);
-    var cx=(p1.x+p2.x)/2, cy=Math.min(p1.y,p2.y)-60;
-    flightPath='<path d="M '+p1.x+' '+p1.y+' Q '+cx+' '+cy+' '+p2.x+' '+p2.y+'" fill="none" stroke="rgba(225,6,0,0.5)" stroke-width="1.5" stroke-dasharray="6,6"><animate attributeName="stroke-dashoffset" from="0" to="-120" dur="3s" repeatCount="indefinite"/></path>';
-  }
+    var path = d3.geoPath().projection(projection);
+    var graticule = d3.geoGraticule();
 
-  wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs><radialGradient id="mapbg" cx="50%" cy="50%"><stop offset="0%" stop-color="#0e0e18"/><stop offset="100%" stop-color="#050508"/></radialGradient></defs>' +
-    '<rect width="' + W + '" height="' + H + '" fill="url(#mapbg)"/>' + continents + flightPath + pins + '</svg>';
+    var svg = d3.select(wrap).append('svg')
+      .attr('width', '100%').attr('height', '100%')
+      .attr('viewBox', '0 0 ' + W + ' ' + H);
 
-  var tip = document.getElementById('map-tip');
-  if (!tip) return;
-  wrap.querySelectorAll('.race-pin').forEach(function(el) {
-    el.addEventListener('mouseenter', function() {
-      var rnd = parseInt(el.dataset.rnd);
-      var race = null;
-      for (var i = 0; i < S.schedule.length; i++) { if (S.schedule[i].round === rnd) { race = S.schedule[i]; break; } }
-      if (!race) return;
-      var res = S.raceResults[rnd];
-      var labels = {completed:'\u2705 COMPLETED', next:'\ud83d\udd34 NEXT RACE', upcoming:'\u23f3 UPCOMING'};
-      var clr = race.status === 'completed' ? '#22c55e' : race.status === 'next' ? '#E10600' : '#FF8000';
-      var pod = '';
-      if (res) {
-        var med = ['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'];
-        pod = '<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:8px;padding-top:8px;">';
-        res.Results.slice(0,3).forEach(function(x,i) {
-          pod += '<div style="font-size:11px;padding:2px 0;">' + med[i] + ' ' + x.Driver.familyName + ' <span style="color:#555">' + x.Constructor.name + '</span></div>';
-        });
-        pod += '</div>';
+    // Ocean background
+    svg.append('path')
+      .datum({type:'Sphere'})
+      .attr('class','sphere')
+      .attr('d', path);
+
+    // Graticule grid lines
+    svg.append('path')
+      .datum(graticule())
+      .attr('class','graticule')
+      .attr('d', path);
+
+    // Countries
+    svg.append('g')
+      .selectAll('path')
+      .data(topojson.feature(world, world.objects.countries).features)
+      .enter().append('path')
+      .attr('class','country')
+      .attr('d', path);
+
+    // Country borders
+    svg.append('path')
+      .datum(topojson.mesh(world, world.objects.countries, function(a,b){return a!==b;}))
+      .attr('fill','none')
+      .attr('stroke','#1e2133')
+      .attr('stroke-width','0.4')
+      .attr('d', path);
+
+    // Flight arc from last completed → next
+    var lastDone = S.schedule.slice().reverse().find(function(r){return r.status==='completed' && r.lat;});
+    var nextRace = S.schedule.find(function(r){return r.status==='next' && r.lat;});
+    if (lastDone && nextRace) {
+      var arcData = {
+        type:'LineString',
+        coordinates: [[lastDone.lng, lastDone.lat], [nextRace.lng, nextRace.lat]]
+      };
+      svg.append('path')
+        .datum(arcData)
+        .attr('class','flight-arc')
+        .attr('stroke','rgba(225,6,0,0.7)')
+        .attr('stroke-width', 1.5)
+        .attr('d', d3.geoPath().projection(projection).pointRadius(3));
+    }
+
+    // Race pins
+    var tip = document.getElementById('map-tip');
+    var pinsG = svg.append('g').attr('class','pins');
+
+    S.schedule.filter(function(r){return r.lat;}).forEach(function(r) {
+      var pt = projection([r.lng, r.lat]);
+      if (!pt) return;
+      var clr = r.status === 'completed' ? '#4ade80' : r.status === 'next' ? '#E10600' : '#fb923c';
+      var g = pinsG.append('g')
+        .attr('class','race-pin')
+        .attr('id','map-pin-'+r.round)
+        .attr('transform','translate('+pt[0]+','+pt[1]+')');
+
+      // Pulse ring for next race
+      if (r.status === 'next') {
+        var pulse = g.append('circle')
+          .attr('r', 8).attr('fill','none')
+          .attr('stroke', clr).attr('stroke-width', 1.5).attr('opacity', 0.8);
+        pulse.append('animate')
+          .attr('attributeName','r').attr('from','6').attr('to','22')
+          .attr('dur','2s').attr('repeatCount','indefinite');
+        pulse.append('animate')
+          .attr('attributeName','opacity').attr('from','0.8').attr('to','0')
+          .attr('dur','2s').attr('repeatCount','indefinite');
       }
-      var dt = '';
-      try { dt = new Date(race.dateStart).toDateString(); } catch(e) { dt = race.dateStart || ''; }
-      tip.innerHTML = '<div style="font-size:9px;color:#555;margin-bottom:5px">ROUND ' + rnd + ' \u00b7 2026</div>' +
-        '<div style="font-weight:700;font-size:14px;margin-bottom:2px">' + race.flag + ' ' + race.name + '</div>' +
-        '<div style="font-size:11px;color:#888;margin-bottom:6px">' + dt + '</div>' +
-        '<div style="font-size:10px;font-weight:700;color:' + clr + '">' + (labels[race.status]||'') + '</div>' + pod;
-      tip.style.opacity = '1';
+
+      // Main dot
+      g.append('circle')
+        .attr('class','pin-dot')
+        .attr('r', 6).attr('fill', clr)
+        .attr('stroke','rgba(0,0,0,0.8)').attr('stroke-width', 1.5)
+        .style('cursor','pointer')
+        .on('mouseenter', function(event) {
+          d3.select(this).transition().duration(150).attr('r', 9);
+        })
+        .on('mouseleave', function() {
+          d3.select(this).transition().duration(150).attr('r', 6);
+        });
+
+      // Checkmark for completed
+      if (S.raceResults[r.round]) {
+        g.append('text')
+          .attr('text-anchor','middle').attr('dominant-baseline','central')
+          .attr('font-size','7').attr('font-weight','900').attr('fill','#111')
+          .text('\u2713');
+      }
+
+      // Flag emoji label
+      g.append('text')
+        .attr('x', 10).attr('y', 4)
+        .attr('font-size','13').attr('fill','white')
+        .style('pointer-events','none')
+        .text(r.flag);
+
+      // Tooltip & click
+      g.on('mouseenter', function(event) {
+        var res = S.raceResults[r.round];
+        var clrLabel = r.status==='completed' ? '#4ade80' : r.status==='next' ? '#ff4d4d' : '#fb923c';
+        var pod = '';
+        if (res) {
+          pod = '<div style="border-top:1px solid rgba(255,255,255,.1);margin-top:8px;padding-top:8px;">' +
+            res.Results.slice(0,3).map(function(x,i){
+              return '<div style="font-size:12px;padding:2px 0;font-weight:700;">'+['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'][i]+' '+x.Driver.familyName+' <span style="color:#888;font-size:10px;">'+x.Constructor.name+'</span></div>';
+            }).join('') + '</div>';
+        }
+        tip.innerHTML = '<div style="font-size:10px;color:#888;margin-bottom:5px;letter-spacing:1px;font-weight:700;">ROUND '+r.round+' \u00b7 2026</div>' +
+          '<div style="font-weight:900;font-size:17px;margin-bottom:3px;font-family:\'Barlow Condensed\',sans-serif;text-transform:uppercase;">'+r.flag+' '+r.name+'</div>' +
+          '<div style="font-size:12px;color:#ccc;margin-bottom:6px">'+r.circuit+'</div>' +
+          '<div style="font-size:11px;font-weight:900;color:'+clrLabel+';letter-spacing:1px;">'+r.status.toUpperCase()+'</div>' + pod;
+        tip.style.opacity = '1';
+        var rect = wrap.getBoundingClientRect();
+        var x = event.clientX - rect.left + 14;
+        var y = event.clientY - rect.top - 20;
+        tip.style.left = Math.min(x, rect.width - 250) + 'px';
+        tip.style.top = Math.max(y, 4) + 'px';
+      })
+      .on('mousemove', function(event) {
+        var rect = wrap.getBoundingClientRect();
+        tip.style.left = Math.min(event.clientX - rect.left + 14, rect.width - 250) + 'px';
+        tip.style.top = Math.max(event.clientY - rect.top - 20, 4) + 'px';
+      })
+      .on('mouseleave', function() { tip.style.opacity = '0'; })
+      .on('click', function() {
+        var sch = r, race = S.raceResults[r.round];
+        if (race) showRaceModal(sch, race);
+      });
     });
-    el.addEventListener('mousemove', function(e) {
-      var rect = wrap.getBoundingClientRect();
-      tip.style.left = Math.min(e.clientX - rect.left + 14, rect.width - 240) + 'px';
-      tip.style.top  = Math.max(e.clientY - rect.top - 20, 4) + 'px';
-    });
-    el.addEventListener('mouseleave', function() { tip.style.opacity = '0'; });
-    el.addEventListener('click', function() {
-      var rnd = parseInt(el.dataset.rnd);
-      var sch = null, race = null;
-      for (var i = 0; i < S.schedule.length; i++) { if (S.schedule[i].round === rnd) { sch = S.schedule[i]; break; } }
-      race = S.raceResults[rnd];
-      if (race && sch) showRaceModal(sch, race);
-    });
+  }).catch(function(err) {
+    console.error('Map load failed:', err);
+    // Fallback: clean minimal display
+    wrap.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;background:#06060c">' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:#444;letter-spacing:4px;">2026 RACE CALENDAR</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:900px;padding:20px">' +
+      S.schedule.map(function(r) {
+        var clr = r.status==='completed'?'#4ade80':r.status==='next'?'#E10600':'#333';
+        var bg = r.status==='next'?'rgba(225,6,0,0.15)':r.status==='completed'?'rgba(74,222,128,0.08)':'rgba(255,255,255,0.03)';
+        return '<div onclick="calClick('+r.round+')" style="cursor:pointer;background:'+bg+';border:1px solid '+clr+'44;border-radius:8px;padding:10px 14px;min-width:130px;transition:0.2s" onmouseenter="this.style.transform=\'translateY(-3px)\'" onmouseleave="this.style.transform=\'\'">' +
+          '<div style="font-size:9px;color:#555;font-family:\'Share Tech Mono\',monospace;margin-bottom:3px">R'+String(r.round).padStart(2,'0')+'</div>' +
+          '<div style="font-size:14px;margin-bottom:2px">'+r.flag+'</div>' +
+          '<div style="font-size:12px;font-weight:700;color:'+clr+'">'+r.country+'</div>' +
+          '<div style="font-size:10px;color:#555;margin-top:3px">'+r.circuit+'</div>' +
+          (S.raceResults[r.round]?'<div style="font-size:10px;color:#4ade80;margin-top:4px;font-weight:700">\ud83c\udfc6 '+S.raceResults[r.round].Results[0].Driver.familyName+'</div>':'') +
+          '</div>';
+      }).join('') + '</div></div>';
   });
 }
+
 
 /* ═══════════════════════════════════════
    RACE RESULTS PAGE
