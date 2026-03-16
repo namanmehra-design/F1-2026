@@ -325,10 +325,8 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 .drv-tm{font-size:9px;color:var(--muted);}
 
 #drivers-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#drv-hero{
-  position:relative;height:160px;flex-shrink:0;background:#050508;
-  border-bottom:1px solid var(--border);overflow:hidden;
-}
+#drv-hero{position:relative;height:200px;flex-shrink:0;background:#050508;border-bottom:1px solid var(--border);overflow:hidden;}
+#drv-headshot{position:absolute;right:0;top:0;bottom:0;width:55%;z-index:1;background-size:contain;background-position:bottom right;background-repeat:no-repeat;-webkit-mask-image:linear-gradient(to left,black 25%,rgba(0,0,0,.4) 55%,transparent 85%);mask-image:linear-gradient(to left,black 25%,rgba(0,0,0,.4) 55%,transparent 85%);transition:background-image .3s;}
 #drv-hero-glow{position:absolute;inset:0;opacity:.12;transition:all .5s;pointer-events:none;}
 #drv-num-bg{
   position:absolute;right:16px;top:-12px;font-family:'Barlow Condensed',sans-serif;
@@ -670,9 +668,11 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
     <div id="drv-hero">
       <div id="drv-hero-glow"></div>
       <div id="drv-num-bg">—</div>
+      <div id="drv-headshot"></div>
       <div class="drv-hero-inner">
         <div class="drv-logo-ring" id="drv-logo-ring">
-          <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:100%;height:100%;"></svg>
+          <img id="drv-logo-img" src="" alt="" style="width:72%;height:72%;object-fit:contain;display:none"/>
+          <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:85%;height:85%;"></svg>
         </div>
         <div class="drv-hero-text">
           <div class="drv-hero-team" id="drv-hero-team">—</div>
@@ -843,19 +843,8 @@ var CALENDAR = [
 ];
 
 // Team logo URLs
-var TEAM_LOGOS = {
-  mclaren:'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/McLaren_Racing_logo.svg/200px-McLaren_Racing_logo.svg.png',
-  ferrari:'https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Scuderia_Ferrari_Logo.svg/200px-Scuderia_Ferrari_Logo.svg.png',
-  redbull:'https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/RedBullEnergyDrink.svg/200px-RedBullEnergyDrink.svg.png',
-  mercedes:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Logo.svg/200px-Mercedes-Logo.svg.png',
-  aston:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Aston_Martin_Aramco_Cognizant_F1_Team_Logo.svg/200px-Aston_Martin_Aramco_Cognizant_F1_Team_Logo.svg.png',
-  alpine:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Alpine_F1_Team_Logo.svg/200px-Alpine_F1_Team_Logo.svg.png',
-  haas:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/MoneyGram_Haas_F1_Team_Logo.svg/200px-MoneyGram_Haas_F1_Team_Logo.svg.png',
-  rb:'https://upload.wikimedia.org/wikipedia/en/thumb/6/69/Visa_Cash_App_RB_F1_Team_logo.svg/200px-Visa_Cash_App_RB_F1_Team_logo.svg.png',
-  williams:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Williams_Racing_2020_logo.svg/200px-Williams_Racing_2020_logo.svg.png',
-  audi:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/200px-Audi-Logo_2016.svg.png',
-  cadillac:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Cadillac_emblem_2021.svg/200px-Cadillac_emblem_2021.svg.png'
-};
+var _TL='https://media.formula1.com/content/dam/fom-website/teams/2024/';
+var TEAM_LOGOS={mclaren:_TL+'mclaren-logo.png.transform/2col/image.png',ferrari:_TL+'ferrari-logo.png.transform/2col/image.png',redbull:_TL+'red-bull-racing-logo.png.transform/2col/image.png',mercedes:_TL+'mercedes-logo.png.transform/2col/image.png',aston:_TL+'aston-martin-logo.png.transform/2col/image.png',alpine:_TL+'alpine-logo.png.transform/2col/image.png',haas:_TL+'haas-logo.png.transform/2col/image.png',rb:_TL+'rb-logo.png.transform/2col/image.png',williams:_TL+'williams-logo.png.transform/2col/image.png',audi:null,cadillac:null};
 
 const NUM_ID = {
   1:'norris',3:'verstappen',5:'bortoleto',6:'hadjar',10:'gasly',11:'perez',
@@ -865,6 +854,9 @@ const NUM_ID = {
 };
 const ID_NUM = {};
 Object.entries(NUM_ID).forEach(function(e){ ID_NUM[e[1]] = parseInt(e[0]); });
+var _H='https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_320/content/dam/fom-website/drivers/';
+var HEADSHOTS={norris:_H+'2025Drivers/norris',verstappen:_H+'2025Drivers/verstappen',hamilton:_H+'2025Drivers/hamilton',leclerc:_H+'2025Drivers/leclerc',alonso:_H+'2025Drivers/alonso',russell:_H+'2025Drivers/russell',piastri:_H+'2025Drivers/piastri',sainz:_H+'2025Drivers/sainz',albon:_H+'2025Drivers/albon',gasly:_H+'2025Drivers/gasly',ocon:_H+'2025Drivers/ocon',stroll:_H+'2025Drivers/stroll',hulkenberg:_H+'2025Drivers/hulkenberg',perez:_H+'2024Drivers/perez',bottas:_H+'2024Drivers/bottas',antonelli:_H+'2025Drivers/antonelli',bearman:_H+'2025Drivers/bearman',bortoleto:_H+'2025Drivers/bortoleto',lawson:_H+'2025Drivers/lawson',hadjar:_H+'2025Drivers/hadjar',colapinto:_H+'2024Drivers/colapinto',lindblad:null};
+
 
 const TEAMS_S = {
   mclaren: {name:'McLaren',      color:'#FF8000',origin:'Woking, UK',         titles:8, wins:183,drivers:['Norris','Piastri']},
@@ -1694,18 +1686,24 @@ function renderStandingsCharts() {
 /* ═══════════════════════════════════════
    DRIVERS PAGE
 ═══════════════════════════════════════ */
-function renderDriverSidebar() {
-  var el = document.getElementById('drv-list');
-  if (!el) return;
-  el.innerHTML = DRV_S.map(function(d) {
-    var t = TEAMS_S[d.team];
-    var logoHtml = TEAM_LOGOS[d.team] ? '<img src="'+TEAM_LOGOS[d.team]+'" style="width:22px;height:22px;object-fit:contain;margin-left:auto;opacity:0.7;flex-shrink:0" onerror="this.remove()"/>' : '';
-    return '<div class="drv-btn" id="db-' + d.id + '" onclick="loadDriver(\'' + d.id + '\')">' +
-      '<div class="drv-num">' + d.num + '</div>' +
-      '<div style="flex:1"><div class="drv-nm">' + d.name.split(' ').pop() + '</div><div class="drv-tm">' + (t ? t.name : '') + '</div></div>' +
-      logoHtml +
-      '</div>';
+function renderDriverSidebar(){
+  var el=document.getElementById('drv-list');
+  if(!el)return;
+  el.innerHTML=DRV_S.map(function(d){
+    var t=TEAMS_S[d.team],tclr=t?t.color:'#444';
+    var lurl=TEAM_LOGOS[d.team];
+    var logo=lurl?'<img src="'+lurl+'" style="width:20px;height:20px;object-fit:contain;margin-left:auto;flex-shrink:0;opacity:0.7" onerror="this.remove()"/>':'';
+    return '<div class="drv-btn" id="db-'+d.id+'" data-id="'+d.id+'">'+
+      '<div style="width:3px;height:36px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-right:2px"></div>'+
+      '<div class="drv-num" style="color:rgba(255,255,255,.15)">'+d.num+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="drv-nm">'+d.name.split(' ').pop()+'</div><div class="drv-tm">'+(t?t.name:'')+'</div></div>'+
+      logo+'</div>';
   }).join('');
+  // Use event delegation to avoid onclick quote issues
+  el.onclick=function(e){
+    var btn=e.target.closest('.drv-btn');
+    if(btn&&btn.dataset.id)loadDriver(btn.dataset.id);
+  };
 }
 
 function filterDrv(q) {
@@ -1757,17 +1755,12 @@ function loadDriver(id) {
   var glow = document.getElementById('drv-hero-glow');
   if (glow) glow.style.background = 'radial-gradient(ellipse at 30% 50%, ' + clr + ', transparent 65%)';
   setText('drv-num-bg', d.num);
-  var ring = document.getElementById('drv-logo-ring');
-  if (ring) {
-    ring.style.borderColor = clr;
-    ring.style.boxShadow = '0 0 20px rgba(0,0,0,0.8), inset 0 0 15px ' + clr + '33';
-    if (TEAM_LOGOS[d.team]) {
-      ring.innerHTML = '<img src="'+TEAM_LOGOS[d.team]+'" style="width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 0 4px '+clr+'88)" onerror="this.innerHTML=\'\'">';
-    } else {
-      var svg = ring.querySelector('svg') || ring;
-      if (svg && svg.innerHTML !== undefined) svg.innerHTML = teamLogoInner(d.team, clr);
-    }
-  }
+  var hsEl=document.getElementById('drv-headshot');
+  if(hsEl){var hu=HEADSHOTS[id];hsEl.style.backgroundImage='none';if(hu){var ti=new Image();ti.onload=function(){hsEl.style.backgroundImage='url("'+hu+'")';};ti.src=hu;}}
+  var ring=document.getElementById('drv-logo-ring'),li=document.getElementById('drv-logo-img'),ls=document.getElementById('drv-logo-svg');
+  if(ring){ring.style.borderColor=clr;ring.style.boxShadow='0 0 20px rgba(0,0,0,.9),0 0 10px '+clr+'33';
+    if(TEAM_LOGOS[d.team]&&li){li.style.display='block';li.style.filter='drop-shadow(0 2px 5px '+clr+'44)';if(ls)ls.style.display='none';li.onerror=function(){li.style.display='none';if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}};li.src=TEAM_LOGOS[d.team];}
+    else{if(li)li.style.display='none';if(ls){ls.style.display='block';ls.innerHTML=teamLogoInner(d.team,clr);}}}
   setText('drv-hero-name', d.surname);
   var teamEl = document.getElementById('drv-hero-team');
   if (teamEl) { teamEl.textContent = t.name; teamEl.style.color = clr; }
