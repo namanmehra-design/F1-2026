@@ -475,6 +475,17 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 </head>
 <body>
 
+
+<!-- Local file CORS warning banner -->
+<div id="local-file-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a0a00;border-bottom:2px solid #f59e0b;padding:10px 20px;align-items:center;gap:14px;font-size:13px;">
+  <span style="font-size:18px;">⚠️</span>
+  <div style="flex:1;">
+    <strong style="color:#f59e0b;">Safari is blocking API calls from local files.</strong>
+    <span style="color:#aaa;margin-left:8px;">To fix: open Terminal and run the command below, then open <code style="background:#333;padding:1px 6px;border-radius:3px;">http://localhost:8000</code> in Safari.</span>
+  </div>
+  <code style="background:#000;border:1px solid #333;padding:6px 14px;border-radius:6px;color:#22c55e;font-size:12px;white-space:nowrap;">cd ~/Downloads && python3 -m http.server 8000</code>
+  <button onclick="document.getElementById('local-file-banner').style.display='none'" style="background:none;border:1px solid #444;color:#aaa;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">✕ Dismiss</button>
+</div>
 <!-- ═══ TOP BAR ═══ -->
 <div id="topbar">
   <div class="logo">
@@ -950,16 +961,52 @@ function killChart(k) {
 }
 
 /* ═══ API ═══ */
+// Detect if running from file:// (Safari/local) vs http server
+const IS_LOCAL_FILE = window.location.protocol === 'file:';
+// CORS proxy for local file:// usage - allorigins is free, no key needed
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+function proxyUrl(url) {
+  // If served over http/https, call API directly (GitHub Pages, local server, etc)
+  // If opened as file://, route through CORS proxy
+  return IS_LOCAL_FILE ? PROXY + encodeURIComponent(url) : url;
+}
+
+async function apiFetch(url) {
+  try {
+    const res = await fetch(proxyUrl(url));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch(err) {
+    // If proxy also fails, try direct as last resort
+    if (IS_LOCAL_FILE) {
+      const res2 = await fetch(url);
+      return await res2.json();
+    }
+    throw err;
+  }
+}
+
 async function boot() {
   setStatus('loading', 'Fetching live data…');
   document.getElementById('refresh-btn').textContent = '⟳ …';
   document.getElementById('refresh-btn').disabled = true;
+
+  // Show file:// warning banner
+  const banner = document.getElementById('local-file-banner');
+  if (IS_LOCAL_FILE && banner) banner.style.display = 'flex';
+
   try {
     await Promise.all([fetchSchedule(), fetchRaceResults(), fetchQuali(), fetchStandings()]);
     setStatus('ok', 'Live · ' + new Date().toLocaleTimeString());
+    if (banner) banner.style.display = 'none'; // hide if success
   } catch(err) {
     console.error('API error:', err);
-    setStatus('err', 'Error · using cached data');
+    if (IS_LOCAL_FILE) {
+      setStatus('err', 'Safari file:// blocked — see banner above');
+    } else {
+      setStatus('err', 'API error · check console');
+    }
   }
   document.getElementById('refresh-btn').textContent = '⟳ Refresh';
   document.getElementById('refresh-btn').disabled = false;
@@ -967,8 +1014,7 @@ async function boot() {
 }
 
 async function fetchSchedule() {
-  const r = await fetch(OPENF1 + '/meetings?year=' + YEAR);
-  const d = await r.json();
+  const d = await apiFetch(OPENF1 + '/meetings?year=' + YEAR);
   const gps = d.filter(m => m.meeting_name && m.meeting_name.includes('Grand Prix'))
                 .sort((a,b) => new Date(a.date_start) - new Date(b.date_start));
   S.schedule = gps.map((m,i) => {
@@ -985,8 +1031,7 @@ async function fetchSchedule() {
 }
 
 async function fetchRaceResults() {
-  const r = await fetch(JOLPICA + '/f1/' + YEAR + '/results.json?limit=500');
-  const d = await r.json();
+  const d = await apiFetch(JOLPICA + '/f1/' + YEAR + '/results.json?limit=500');
   const races = d.MRData.RaceTable.Races;
   S.completedRounds = races.length;
   S.raceResults = {};
@@ -1026,20 +1071,17 @@ async function fetchRaceResults() {
 }
 
 async function fetchQuali() {
-  const r = await fetch(JOLPICA + '/f1/' + YEAR + '/qualifying.json?limit=500');
-  const d = await r.json();
+  const d = await apiFetch(JOLPICA + '/f1/' + YEAR + '/qualifying.json?limit=500');
   d.MRData.RaceTable.Races.forEach(race => {
     S.qualiData[parseInt(race.round)] = race.QualifyingResults;
   });
 }
 
 async function fetchStandings() {
-  const [wr, cr] = await Promise.all([
-    fetch(JOLPICA + '/f1/' + YEAR + '/driverStandings.json'),
-    fetch(JOLPICA + '/f1/' + YEAR + '/constructorStandings.json')
+  const [wd, cd] = await Promise.all([
+    apiFetch(JOLPICA + '/f1/' + YEAR + '/driverStandings.json'),
+    apiFetch(JOLPICA + '/f1/' + YEAR + '/constructorStandings.json')
   ]);
-  const wd = await wr.json();
-  const cd = await cr.json();
   const wl = wd.MRData.StandingsTable.StandingsLists;
   const cl = cd.MRData.StandingsTable.StandingsLists;
   S.wdc = wl.length ? wl[0].DriverStandings : [];
