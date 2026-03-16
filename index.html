@@ -476,7 +476,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 <body>
 
 
-<!-- Local file CORS warning banner -->
 <div id="local-file-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a0a00;border-bottom:2px solid #f59e0b;padding:10px 20px;align-items:center;gap:14px;font-size:13px;">
   <span style="font-size:18px;">⚠️</span>
   <div style="flex:1;">
@@ -486,7 +485,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   <code style="background:#000;border:1px solid #333;padding:6px 14px;border-radius:6px;color:#22c55e;font-size:12px;white-space:nowrap;">cd ~/Downloads && python3 -m http.server 8000</code>
   <button onclick="document.getElementById('local-file-banner').style.display='none'" style="background:none;border:1px solid #444;color:#aaa;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">✕ Dismiss</button>
 </div>
-<!-- ═══ TOP BAR ═══ -->
 <div id="topbar">
   <div class="logo">
     <span class="logo-g">GRID</span><span class="logo-r">2026</span>
@@ -508,9 +506,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 
 <div id="app">
 
-<!-- ═══ HOME ═══ -->
 <div class="page active" id="page-home">
-  <!-- Left: season panel -->
   <div id="home-left">
     <div class="panel-head">
       <span class="panel-title">2026 Season</span>
@@ -539,7 +535,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
     </div>
     <div id="race-scroll"></div>
   </div>
-  <!-- Center: map -->
   <div id="home-center">
     <div id="map-counters">
       <div class="map-pill" id="mp-done" style="color:#22c55e;">0 Done</div>
@@ -556,7 +551,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
 </div>
 
-<!-- ═══ RESULTS ═══ -->
 <div class="page" id="page-results">
   <div id="results-sidebar">
     <div class="panel-head"><span class="panel-title">Races</span></div>
@@ -579,7 +573,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
 </div>
 
-<!-- ═══ STANDINGS ═══ -->
 <div class="page" id="page-standings">
   <div class="standings-top">
     <h1>2026 World Championship</h1>
@@ -613,7 +606,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
 </div>
 
-<!-- ═══ DRIVERS ═══ -->
 <div class="page" id="page-drivers">
   <div id="drivers-sidebar">
     <div id="drv-search-wrap"><input id="drv-search" type="text" placeholder="Search…" oninput="filterDrv(this.value)"></div>
@@ -682,14 +674,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
 </div>
 
-<!-- ═══ ANALYSIS ═══ -->
 <div class="page" id="page-analysis">
   <div class="panel-head" style="flex-shrink:0;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);">
     <span class="panel-title" style="font-size:16px;">Season Analysis · 2026</span>
     <span class="mono" style="font-size:11px;color:var(--muted);" id="analysis-after">After R0</span>
   </div>
   <div id="analysis-inner">
-    <!-- Row 1 -->
     <div class="analysis-grid">
       <div class="analysis-card span2">
         <div class="ac-title">📈 Points Progression (Top 8)</div>
@@ -700,7 +690,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
         <div id="pos-gain-list"></div>
       </div>
     </div>
-    <!-- Row 2 -->
     <div class="analysis-grid">
       <div class="analysis-card">
         <div class="ac-title">⚡ Constructor Battle</div>
@@ -715,7 +704,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
         <div id="outcome-matrix"></div>
       </div>
     </div>
-    <!-- Row 3 -->
     <div class="analysis-grid">
       <div class="analysis-card span3">
         <div class="ac-title">🔑 Race-by-Race Driver Status</div>
@@ -726,10 +714,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
 </div>
 
-</div><!-- #app -->
-
-<!-- Modal -->
-<div id="modal-bg" onclick="if(event.target===this)closeModal()">
+</div><div id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div id="modal-box">
     <div id="modal-hd"><div id="modal-title-txt">Results</div><button id="modal-close" onclick="closeModal()">✕</button></div>
     <div id="modal-bd"></div>
@@ -742,7 +727,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 /* ═══════════════════════════════════════
    CONFIG & CONSTANTS
 ═══════════════════════════════════════ */
-const JOLPICA = 'https://api.jolpi.ca/ergast/f1';
+const JOLPICA = 'https://api.jolpi.ca/ergast';
 const YEAR    = 2026;
 
 const FLAGS = {
@@ -805,7 +790,7 @@ const ID_NUM = {};
 Object.entries(NUM_ID).forEach(function(e){ ID_NUM[e[1]] = parseInt(e[0]); });
 
 const TEAMS_S = {
-  mclaren: {name:'McLaren',      color:'#FF8000',origin:'Woking, UK',         titles:8, wins:183,drivers:['Norris','Piastri']},
+  mclaren: {name:'McLaren',      color:'#FF8000',origin:'Woking, UK',        titles:8, wins:183,drivers:['Norris','Piastri']},
   ferrari: {name:'Ferrari',      color:'#E10600',origin:'Maranello, Italy',   titles:16,wins:243,drivers:['Hamilton','Leclerc']},
   redbull: {name:'Red Bull',     color:'#3671C6',origin:'Milton Keynes, UK',  titles:6, wins:119,drivers:['Verstappen','Hadjar']},
   mercedes:{name:'Mercedes',     color:'#00D2BE',origin:'Brackley, UK',       titles:8, wins:125,drivers:['Russell','Antonelli']},
@@ -819,7 +804,7 @@ const TEAMS_S = {
 };
 
 const DRV_S = [
-  {id:'norris',    name:'Lando Norris',     surname:'NORRIS',    num:1, team:'mclaren', flag:'🇬🇧',country:'British',      dob:'1999-11-13',
+  {id:'norris',    name:'Lando Norris',     surname:'NORRIS',    num:1, team:'mclaren', flag:'🇬🇧',country:'British',       dob:'1999-11-13',
    stats:{titles:1,wins:4,poles:8,podiums:25},eraRates:[0,0,4.5,0],
    eraData:[{era:'Turbo Hybrid 19-21',r:60,w:0,rate:'0.0%'},{era:'Ground Effect 22-25',r:88,w:4,rate:'4.5%'}],
    h2h:[{tm:'Carlos Sainz',yr:'McLaren 19-20',wa:'0',wb:'0',pa:'0',pb:'0',res:'Lost on pts'},{tm:'Oscar Piastri',yr:'McLaren 23-26',wa:'4',wb:'2',pa:'7',pb:'0',res:'Leading'}],
@@ -875,21 +860,21 @@ const DRV_S = [
    records:['Only non-RBR winner in 2023 Singapore','4 wins across 2 seasons at Ferrari'],
    venues:[{v:'Silverstone',w:1},{v:'Singapore',w:1},{v:'Melbourne',w:1}],
    facts:['Son of rallying legend Sainz Sr.','Nicknamed Smooth Operator.','Left Ferrari after Hamilton announcement.','Leading Williams rebuild.']},
-  {id:'albon',     name:'Alex Albon',       surname:'ALBON',     num:23,team:'williams',flag:'🇹🇭',country:'Thai',           dob:'1996-03-23',
+  {id:'albon',     name:'Alex Albon',       surname:'ALBON',     num:23,team:'williams',flag:'🇹🇭',country:'Thai',          dob:'1996-03-23',
    stats:{titles:0,wins:0,poles:0,podiums:2},eraRates:[0,0,0,0],
    eraData:[{era:'Turbo Hybrid 19-20',r:38,w:0,rate:'0.0%'},{era:'Ground Effect 22-25',r:88,w:0,rate:'0.0%'}],
    h2h:[{tm:'Max Verstappen',yr:'RBR 19-20',wa:'0',wb:'2',pa:'0',pb:'4',res:'Lost'},{tm:'Logan Sargeant',yr:'Williams 23-24',wa:'0',wb:'0',pa:'0',pb:'0',res:'Dominated'}],
    records:['Led Williams midfield return 2022-24'],
    venues:[],
    facts:['Races under Thai flag.','Dropped by RBR, came back stronger.','Williams team leader and fan favourite.','Dyed hair red for good luck.']},
-  {id:'gasly',     name:'Pierre Gasly',     surname:'GASLY',     num:10,team:'alpine',  flag:'🇫🇷',country:'French',         dob:'1996-02-07',
+  {id:'gasly',     name:'Pierre Gasly',     surname:'GASLY',     num:10,team:'alpine',  flag:'🇫🇷',country:'French',        dob:'1996-02-07',
    stats:{titles:0,wins:1,poles:0,podiums:4},eraRates:[0,0.7,0,0],
    eraData:[{era:'Turbo Hybrid 17-21',r:86,w:1,rate:'1.1%'},{era:'Ground Effect 22-25',r:88,w:0,rate:'0.0%'}],
    h2h:[{tm:'Max Verstappen',yr:'RBR 2019',wa:'0',wb:'2',pa:'0',pb:'1',res:'Lost'},{tm:'Esteban Ocon',yr:'Alpine 23-24',wa:'0',wb:'0',pa:'0',pb:'0',res:'Matched'}],
    records:['Won 2020 Italian GP after RBR demotion'],
    venues:[{v:'Monza',w:1}],
    facts:['PSG fan.','Childhood rivals with Ocon.','Joined Alpine in 2023.','Strong early 2026 results.']},
-  {id:'ocon',      name:'Esteban Ocon',     surname:'OCON',      num:31,team:'haas',    flag:'🇫🇷',country:'French',         dob:'1996-09-17',
+  {id:'ocon',      name:'Esteban Ocon',     surname:'OCON',      num:31,team:'haas',    flag:'🇫🇷',country:'French',        dob:'1996-09-17',
    stats:{titles:0,wins:1,poles:0,podiums:3},eraRates:[0,1.1,0,0],
    eraData:[{era:'Turbo Hybrid 16-21',r:89,w:1,rate:'1.1%'},{era:'Ground Effect 22-25',r:88,w:0,rate:'0.0%'}],
    h2h:[{tm:'Sergio Perez',yr:'Force India 17-18',wa:'0',wb:'0',pa:'0',pb:'0',res:'Lost on pts'},{tm:'Fernando Alonso',yr:'Alpine 21-22',wa:'1',wb:'0',pa:'0',pb:'0',res:'Beat on pts'}],
@@ -903,63 +888,63 @@ const DRV_S = [
    records:['Youngest rookie podium (18y 239d)','Pole in wet 2020 Turkish GP'],
    venues:[],
    facts:['Father Lawrence Stroll owns the team.','Raced with broken wrists in 2023.','Heir to fashion and motorsport empire.','Pole at Turkish GP in 4th F1 season.']},
-  {id:'hulkenberg',name:'Nico Hulkenberg',  surname:'HULKENBERG',num:27,team:'audi',    flag:'🇩🇪',country:'German',         dob:'1987-08-19',
+  {id:'hulkenberg',name:'Nico Hulkenberg',  surname:'HULKENBERG',num:27,team:'audi',    flag:'🇩🇪',country:'German',        dob:'1987-08-19',
    stats:{titles:0,wins:0,poles:1,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'V8 Era 10-13',r:57,w:0,rate:'0.0%'},{era:'Turbo Hybrid 14-20',r:122,w:0,rate:'0.0%'}],
    h2h:[{tm:'Kevin Magnussen',yr:'Haas 23-24',wa:'0',wb:'0',pa:'0',pb:'0',res:'Beat'}],
    records:['Most career starts without a podium','Audi cornerstone for 2026 debut'],
    venues:[],
    facts:['Audi first F1 works driver.','Won Le Mans 2015 for Porsche.','Nicknamed Hulkenback for sub drives.','Most consistent midfield career ever.']},
-  {id:'perez',     name:'Sergio Perez',     surname:'PEREZ',     num:11,team:'cadillac',flag:'🇲🇽',country:'Mexican',        dob:'1990-01-26',
+  {id:'perez',     name:'Sergio Perez',     surname:'PEREZ',     num:11,team:'cadillac',flag:'🇲🇽',country:'Mexican',       dob:'1990-01-26',
    stats:{titles:0,wins:6,poles:3,podiums:39},eraRates:[0,1.4,4.5,0],
    eraData:[{era:'Turbo Hybrid 14-21',r:159,w:2,rate:'1.2%'},{era:'Ground Effect 22-25',r:88,w:4,rate:'4.5%'}],
    h2h:[{tm:'Max Verstappen',yr:'RBR 21-24',wa:'5',wb:'48',pa:'3',pb:'38',res:'Lost'}],
    records:['Most starts before maiden win (190)','Street circuit master: Monaco, Baku, Jeddah'],
    venues:[{v:'Baku',w:2},{v:'Monaco',w:1},{v:'Jeddah',w:1}],
    facts:['Joined new Cadillac team.','Nicknamed Minister of Defence.','Mexico national hero.','Dropped by RBR, landed Cadillac seat.']},
-  {id:'bottas',    name:'Valtteri Bottas',  surname:'BOTTAS',    num:77,team:'cadillac',flag:'🇫🇮',country:'Finnish',        dob:'1989-08-28',
+  {id:'bottas',    name:'Valtteri Bottas',  surname:'BOTTAS',    num:77,team:'cadillac',flag:'🇫🇮',country:'Finnish',       dob:'1989-08-28',
    stats:{titles:0,wins:10,poles:20,podiums:67},eraRates:[0,10.1,0,0],
    eraData:[{era:'Turbo Hybrid 14-21',r:159,w:10,rate:'6.2%'},{era:'Ground Effect 22-25',r:88,w:0,rate:'0.0%'}],
    h2h:[{tm:'Lewis Hamilton',yr:'Mercedes 17-21',wa:'10',wb:'50',pa:'20',pb:'42',res:'Lost'}],
    records:['Key wingman in 5 Mercedes WCC titles','10 career wins at Mercedes'],
    venues:[{v:'Sochi',w:2},{v:'Red Bull Ring',w:2},{v:'Melbourne',w:1}],
    facts:['Laid-back attitude and mullet legend.','Avid cyclist and coffee enthusiast.','Joined Cadillac for 2026.','Longest Mercedes driver since Schumacher.']},
-  {id:'antonelli', name:'Kimi Antonelli',   surname:'ANTONELLI', num:12,team:'mercedes',flag:'🇮🇹',country:'Italian',        dob:'2006-08-25',
+  {id:'antonelli', name:'Kimi Antonelli',   surname:'ANTONELLI', num:12,team:'mercedes',flag:'🇮🇹',country:'Italian',       dob:'2006-08-25',
    stats:{titles:0,wins:0,poles:0,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 2025',r:24,w:0,rate:'0.0%'}],
    h2h:[{tm:'George Russell',yr:'Mercedes 25-26',wa:'0',wb:'0',pa:'0',pb:'0',res:'Active'}],
    records:['Youngest ever Mercedes F1 driver','Won Chinese GP in just 4th career race'],
    venues:[],
    facts:['Took Hamilton seat at Mercedes aged 18.','Full name Andrea Kimi.','Backed by Mercedes since karting at 14.','Won R2 Chinese GP 2026.']},
-  {id:'bearman',   name:'Oliver Bearman',   surname:'BEARMAN',   num:87,team:'haas',    flag:'🇬🇧',country:'British',        dob:'2005-05-08',
+  {id:'bearman',   name:'Oliver Bearman',   surname:'BEARMAN',   num:87,team:'haas',    flag:'🇬🇧',country:'British',       dob:'2005-05-08',
    stats:{titles:0,wins:0,poles:0,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 24-25',r:25,w:0,rate:'0.0%'}],
    h2h:[{tm:'Esteban Ocon',yr:'Haas 25-26',wa:'0',wb:'0',pa:'0',pb:'0',res:'Active'}],
    records:['Youngest Ferrari race driver Jeddah 2024','P7 on Ferrari debut as teenager'],
    venues:[],
    facts:['87 was his father\'s racing number.','Ferrari Driver Academy graduate.','Surprised all with P7 on Ferrari debut.','Impressive P5 in R2 Chinese GP 2026.']},
-  {id:'colapinto', name:'Franco Colapinto', surname:'COLAPINTO', num:43,team:'alpine',  flag:'🇦🇷',country:'Argentine',      dob:'2003-05-27',
+  {id:'colapinto', name:'Franco Colapinto', surname:'COLAPINTO', num:43,team:'alpine',  flag:'🇦🇷',country:'Argentine',     dob:'2003-05-27',
    stats:{titles:0,wins:0,poles:0,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 24-25',r:33,w:0,rate:'0.0%'}],
    h2h:[{tm:'Alex Albon',yr:'Williams 2024',wa:'0',wb:'0',pa:'0',pb:'0',res:'Matched'},{tm:'Pierre Gasly',yr:'Alpine 2026',wa:'0',wb:'0',pa:'0',pb:'0',res:'Active'}],
    records:['First Argentine in F1 since 2001','Points on debut at Italian GP 2024'],
    venues:[],
    facts:['Massive Argentine fanbase.','Secured Alpine seat for 2026.','Viral for passionate radio messages.','Stepped in for Sargeant mid-2024 at Williams.']},
-  {id:'bortoleto', name:'Gabriel Bortoleto',surname:'BORTOLETO', num:5, team:'audi',    flag:'🇧🇷',country:'Brazilian',      dob:'2004-10-14',
+  {id:'bortoleto', name:'Gabriel Bortoleto',surname:'BORTOLETO', num:5, team:'audi',    flag:'🇧🇷',country:'Brazilian',     dob:'2004-10-14',
    stats:{titles:0,wins:0,poles:0,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 2025',r:24,w:0,rate:'0.0%'}],
    h2h:[{tm:'Nico Hulkenberg',yr:'Audi 25-26',wa:'0',wb:'0',pa:'0',pb:'0',res:'Active'}],
    records:['Won F3 in debut season 2023','Won F2 Championship in 2024'],
    venues:[],
    facts:['First Brazilian full-timer since Massa.','Uses #5 last driven by Vettel.','Managed by Alonso management company.','Double feeder-series champion.']},
-  {id:'lawson',    name:'Liam Lawson',      surname:'LAWSON',    num:30,team:'rb',      flag:'🇳🇿',country:'New Zealander',  dob:'2002-02-11',
+  {id:'lawson',    name:'Liam Lawson',      surname:'LAWSON',    num:30,team:'rb',      flag:'🇳🇿',country:'New Zealander', dob:'2002-02-11',
    stats:{titles:0,wins:0,poles:0,podiums:0},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 23-25',r:30,w:0,rate:'0.0%'}],
    h2h:[{tm:'Yuki Tsunoda',yr:'RB 24-25',wa:'0',wb:'0',pa:'0',pb:'0',res:'Beat'}],
    records:['Points on sub debut in 2023','Beat Tsunoda in first full season'],
    venues:[],
    facts:['Following Mark Webber NZ footsteps.','Raced in Super Formula in Japan.','Settled at Racing Bulls for 2026.','P7 in Chinese GP 2026 from P14.']},
-  {id:'hadjar',    name:'Isack Hadjar',     surname:'HADJAR',    num:6, team:'redbull', flag:'🇫🇷',country:'French',         dob:'2004-09-28',
+  {id:'hadjar',    name:'Isack Hadjar',     surname:'HADJAR',    num:6, team:'redbull', flag:'🇫🇷',country:'French',        dob:'2004-09-28',
    stats:{titles:0,wins:0,poles:0,podiums:1},eraRates:[0,0,0,0],
    eraData:[{era:'Ground Effect 2025',r:24,w:0,rate:'0.0%'}],
    h2h:[{tm:'Max Verstappen',yr:'RBR 2026',wa:'0',wb:'0',pa:'0',pb:'0',res:'Learning'}],
@@ -1335,7 +1320,7 @@ function buildMap() {
 }
 
 /* ═══════════════════════════════════════
-   RACE RESULTS PAGE
+   PAGE: RACE RESULTS
 ═══════════════════════════════════════ */
 function renderResultsSidebar() {
   var el = document.getElementById('results-race-list');
@@ -1534,7 +1519,7 @@ function renderStandingsCharts() {
 }
 
 /* ═══════════════════════════════════════
-   DRIVERS PAGE
+   PAGE: DRIVERS
 ═══════════════════════════════════════ */
 function renderDriverSidebar() {
   var el = document.getElementById('drv-list');
