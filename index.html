@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GRID 2026 | F1 Live Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,600;0,700;0,900;1,700;1,900&family=Barlow:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
   --tc: #E10600;
   --shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
-*{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:var(--text);font-family:'Barlow',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 .mono{font-family:'Share Tech Mono',monospace;}
 .cond{font-family:'Barlow Condensed',sans-serif;}
@@ -37,10 +37,10 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 ::-webkit-scrollbar-thumb{background:#2a2a35;border-radius:6px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--tc);}
 
-/* ═══ TOP BAR (Glassmorphism) ═══ */
+/* ═══ TOP BAR ═══ */
 #topbar{
-  display:flex;align-items:center;padding:0 20px;height:56px;
-  background:rgba(5,5,8,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 20px;height:60px;
+  background:rgba(5,5,8,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border);gap:0;flex-shrink:0;z-index:200;
 }
 .logo{
@@ -50,7 +50,7 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 }
 .logo-g{color:white;}
 .logo-r{color:var(--accent);}
-.logo-year{font-size:11px;font-style:normal;font-weight:600;letter-spacing:3px;color:#555;margin-left:8px;align-self:center;text-shadow:none;}
+.logo-year{font-size:11px;font-style:normal;font-weight:600;letter-spacing:3px;color:#888;margin-left:8px;align-self:center;text-shadow:none;}
 
 /* Nav */
 #nav{display:flex;height:100%;align-items:stretch;}
@@ -62,8 +62,6 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 }
 .nav-item:hover{color:var(--text2);background:rgba(255,255,255,0.02);}
 .nav-item.active{color:white;border-bottom-color:var(--accent);background:linear-gradient(to top, rgba(225,6,0,0.1), transparent);}
-.nav-item .nav-icon{font-size:15px;filter:grayscale(1);opacity:0.6;transition:all .2s;}
-.nav-item.active .nav-icon{filter:grayscale(0);opacity:1;}
 
 /* Right side */
 #topbar-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
@@ -72,8 +70,9 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
   background:rgba(0,0,0,0.5);border:1px solid var(--border);
   border-radius:20px;padding:5px 14px;
   font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);
+  white-space:nowrap;
 }
-.api-led{width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;box-shadow:0 0 5px rgba(0,0,0,0.5);}
+.api-led{width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;box-shadow:0 0 5px rgba(0,0,0,0.5);}
 .api-led.loading{background:#f59e0b;animation:blink 1s infinite;box-shadow:0 0 8px #f59e0b;}
 .api-led.ok{background:#22c55e;box-shadow:0 0 8px #22c55e;}
 .api-led.err{background:#ef4444;box-shadow:0 0 8px #ef4444;}
@@ -84,311 +83,132 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
   font-family:'Share Tech Mono',monospace;transition:all .2s;font-weight:600;
 }
 #refresh-btn:hover{color:white;border-color:var(--accent);background:var(--surface-solid);}
-#live-time{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);}
 
 /* ═══ APP BODY ═══ */
-#app{display:flex;flex:1;overflow:hidden;}
-.page{display:none;flex:1;overflow:hidden;animation:fadein 0.3s ease;}
+#app{display:flex;flex:1;overflow:hidden;position:relative;}
+.page{display:none;flex:1;overflow:hidden;animation:fadein 0.3s ease;flex-direction:row;}
 .page.active{display:flex;}
 
 /* ═══════════════════════════════════════
-   PAGE: HOME / COMMAND CENTER
+   SHARED COMPONENTS & PANELS
 ═══════════════════════════════════════ */
-#page-home{flex-direction:row;}
-
-/* Left panel */
-#home-left{
+.sidebar-left {
   width:350px;flex-shrink:0;display:flex;flex-direction:column;
   background:rgba(13,13,17,0.6);border-right:1px solid var(--border);overflow:hidden;
   backdrop-filter: blur(5px);z-index: 2;
 }
 .panel-head{
   padding:16px 20px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.2);
+  display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.4);
 }
 .panel-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.scroll-area{flex:1;overflow-y:auto;padding:24px 32px;background:transparent;}
 
-/* Season summary cards */
+/* ═══════════════════════════════════════
+   HOME PAGE SPECIFICS
+═══════════════════════════════════════ */
 #season-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
-.s-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  padding:16px;position:relative;overflow:hidden;box-shadow:var(--shadow);
-}
+.s-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);}
 .s-card-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
 .s-card-value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1.1;margin-top:6px;text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
 .s-card-sub{font-size:10px;color:var(--muted);margin-top:4px;}
 .s-card-accent{border-top:2px solid var(--tc);background:linear-gradient(145deg, rgba(225,6,0,0.05), transparent);}
 .s-card-accent .s-card-value{color:var(--tc);}
 
-/* Next race panel */
-#next-race-panel{
-  margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);
-  border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:all 0.3s;
-}
-#next-race-panel:hover{border-color:rgba(225,6,0,0.4);transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.6);}
-.nr-header{
-  background:linear-gradient(90deg, rgba(225,6,0,.15), transparent);border-bottom:1px solid rgba(225,6,0,.2);
-  padding:12px 18px;display:flex;align-items:center;gap:10px;
-}
-.nr-badge{
-  background:var(--accent);color:white;font-size:9px;font-weight:700;
-  letter-spacing:2px;padding:4px 10px;border-radius:6px;box-shadow:0 0 10px rgba(225,6,0,0.4);
-}
+#next-race-panel{margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);}
+.nr-header{background:linear-gradient(90deg, rgba(225,6,0,.15), transparent);border-bottom:1px solid rgba(225,6,0,.2);padding:12px 18px;display:flex;align-items:center;gap:10px;}
+.nr-badge{background:var(--accent);color:white;font-size:9px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:6px;}
 .nr-body{padding:16px 18px;}
 .nr-flag{font-size:32px;margin-bottom:8px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
 .nr-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;text-transform:uppercase;margin-bottom:2px;}
 .nr-circuit{font-size:12px;color:var(--text2);margin-bottom:14px;}
 .nr-countdown{display:flex;gap:10px;margin-top:10px;}
 .nr-count-unit{text-align:center;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;padding:10px 12px;flex:1;}
-.nr-count-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--accent);text-shadow: 0 0 8px rgba(225,6,0,0.3);}
+.nr-count-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--accent);}
 .nr-count-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
 
-/* Race list */
-#race-scroll{flex:1;overflow-y:auto;padding-bottom:10px;}
-.race-entry{
-  display:flex;align-items:center;gap:12px;padding:12px 20px;
-  border-bottom:1px solid rgba(255,255,255,.02);cursor:pointer;transition:all .2s;
-}
+.race-entry{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.02);cursor:pointer;transition:all .2s;}
 .race-entry:hover{background:rgba(255,255,255,0.03);padding-left:24px;}
 .race-entry.is-done{opacity:.5;}
 .race-entry.is-next{background:linear-gradient(90deg, rgba(225,6,0,.1), transparent);border-left:3px solid var(--accent);}
 .re-rnd{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);width:24px;flex-shrink:0;}
-.re-flag{font-size:20px;flex-shrink:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+.re-flag{font-size:20px;flex-shrink:0;}
 .re-info{flex:1;min-width:0;}
 .re-country{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .re-date{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
 .re-badge{font-size:8px;padding:3px 8px;border-radius:12px;font-weight:700;letter-spacing:.5px;flex-shrink:0;}
-.badge-done{background:rgba(34,197,94,.15);color:#4ade80;}
-.badge-next{background:rgba(225,6,0,.2);color:#ff4d4d;}
-.badge-soon{background:rgba(255,128,0,.15);color:#fb923c;}
 
-/* Center: world map */
-#home-center{flex:1;position:relative;background:#050508;overflow:hidden;box-shadow: inset 20px 0 30px rgba(0,0,0,0.5);}
-#map-svg-wrap{width:100%;height:100%;position:absolute;inset:0;}
-#map-svg-wrap svg{width:100%;height:100%;}
-.map-path{fill:#12121a;stroke:#222230;stroke-width:1;transition:fill 0.3s ease;}
-.map-path:hover{fill:#1a1a24;}
-
-/* Interactive map elements */
+#home-center{flex:1;position:relative;background:#06080f;overflow:hidden;box-shadow: inset 20px 0 30px rgba(0,0,0,0.5);}
+.map-path{fill:#10141e;stroke:#262a3a;stroke-width:0.5;transition:fill 0.3s ease;}
+.map-path:hover{fill:#151a28;}
 .race-pin{cursor:pointer;}
 .race-pin text {transition:all 0.2s; pointer-events:none;}
 .race-pin circle {transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);}
 .race-pin:hover circle.pin-dot {filter:brightness(1.5); transform:scale(1.4); stroke-width:2;}
 .race-pin.highlighted circle.pin-dot {transform:scale(1.8); stroke-width:3; filter:brightness(1.5); stroke:white;}
 .race-pin.highlighted text {font-size:16px; text-shadow:0 0 10px rgba(0,0,0,1);}
-
 @keyframes nextpulse{0%,100%{r:5;opacity:1;stroke-width:2;}50%{r:18;opacity:0;stroke-width:0;}}
 .race-pin.pin-next .pin-pulse{animation:nextpulse 2.5s ease-out infinite;}
-
-.flight-path {
-    stroke-dasharray: 8, 8;
-    animation: flightdash 30s linear infinite;
-    filter: drop-shadow(0 0 5px rgba(225,6,0,0.6));
-}
-@keyframes flightdash {
-    to { stroke-dashoffset: -1000; }
-}
+.flight-path {stroke-dasharray: 8, 8; animation: flightdash 30s linear infinite; filter: drop-shadow(0 0 5px rgba(225,6,0,0.6));}
+@keyframes flightdash { to { stroke-dashoffset: -1000; } }
 
 #map-tip{
   position:absolute;background:rgba(5,5,10,.85);border:1px solid rgba(255,255,255,.1);
   border-radius:12px;padding:16px 20px;pointer-events:none;opacity:0;
   transition:opacity .2s, transform .1s;z-index:50;min-width:240px;box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-  backdrop-filter: blur(8px);-webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
-#map-counters{position:absolute;top:20px;left:20px;display:flex;gap:10px;z-index:10;}
-.map-pill{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;backdrop-filter:blur(4px);font-weight:700;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
-#map-legend{position:absolute;bottom:20px;left:20px;display:flex;gap:16px;background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:11px;backdrop-filter:blur(4px);z-index:10;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
-.leg-item{display:flex;align-items:center;gap:8px;font-weight:600;}
-.leg-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 5px currentColor;}
-
-/* ═══════════════════════════════════════
-   PAGE: RACE RESULTS & STANDINGS
-═══════════════════════════════════════ */
-#page-results{flex-direction:row;}
-#results-sidebar{
-  width:280px;flex-shrink:0;background:rgba(13,13,17,0.6);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-#results-race-list{flex:1;overflow-y:auto;}
-.results-race-btn{
-  display:flex;align-items:center;gap:12px;padding:14px 20px;
-  cursor:pointer;border-left:3px solid transparent;transition:all .2s;
-  border-bottom:1px solid rgba(255,255,255,.02);
-}
-.results-race-btn:hover{background:rgba(255,255,255,0.03);}
-.results-race-btn.active{background:linear-gradient(90deg, rgba(225,6,0,.1), transparent);border-left-color:var(--accent);}
-.rrb-round{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:3px;}
-.rrb-name{font-size:13px;font-weight:700;}
-.rrb-date{font-size:10px;color:var(--muted);}
-.rrb-winner{font-size:11px;margin-top:4px;color:#4ade80;}
-
-#results-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#results-header{
-  padding:24px 32px;border-bottom:1px solid var(--border);
-  background:rgba(0,0,0,0.3);flex-shrink:0;
-  display:flex;align-items:flex-end;justify-content:space-between;
-}
-.rh-meta{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px;}
-.rh-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;text-transform:uppercase;text-shadow: 0 2px 10px rgba(0,0,0,0.5);}
-.rh-circuit{font-size:14px;color:var(--text2);margin-top:4px;}
-.rh-badges{display:flex;gap:10px;align-items:flex-end;}
-.rh-badge{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center;box-shadow:var(--shadow);}
-.rh-badge-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;}
-.rh-badge-lbl{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
-
-#results-tabs{display:flex;padding:0 12px;background:rgba(20,20,26,0.5);border-bottom:1px solid var(--border);flex-shrink:0;}
-.rtab{padding:14px 18px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;}
-.rtab:hover{color:var(--text2);}
-.rtab.active{color:white;border-bottom-color:var(--accent);}
-
-#results-content{flex:1;overflow-y:auto;padding:24px 32px;background:transparent;}
-.results-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);}
-.results-table thead{background:rgba(0,0,0,0.4);}
-.results-table th{padding:12px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);}
-.results-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.02);font-size:14px;}
-.results-table tr:last-child td{border-bottom:none;}
-.results-table tr:hover td{background:rgba(255,255,255,0.02);}
-
-.pos-cell{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:rgba(255,255,255,.15);}
-.pos-p1{color:#FFD700!important;text-shadow:0 0 10px rgba(255,215,0,0.3);}
-.pos-p2{color:#C0C0C0!important;text-shadow:0 0 10px rgba(192,192,192,0.3);}
-.pos-p3{color:#CD7F32!important;text-shadow:0 0 10px rgba(205,127,50,0.3);}
-.driver-cell{font-weight:700;}
-.driver-num{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-right:8px;}
-.team-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;box-shadow:0 0 6px currentColor;}
-.team-name-cell{font-size:13px;color:var(--text2);}
-.pts-cell{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;text-align:right;}
-.status-finished{color:#4ade80;font-size:12px;font-weight:600;}
-.status-lapped{color:#888;font-size:12px;}
-.status-retired{color:#ef4444;font-size:12px;font-weight:600;}
-.status-dns{color:#666;font-size:12px;}
-.grid-arrow-up{color:#4ade80;font-size:11px;font-weight:700;}
-.grid-arrow-dn{color:#ef4444;font-size:11px;font-weight:700;}
-.grid-same{color:var(--muted);font-size:11px;}
-.fl-badge{background:rgba(192,132,252,.15);color:#d8b4fe;border:1px solid rgba(192,132,252,.3);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:900;letter-spacing:1px;margin-right:6px;}
-
-.q-time{font-family:'Share Tech Mono',monospace;font-size:13px;}
-.q-best{color:var(--accent);font-weight:700;text-shadow:0 0 8px rgba(225,6,0,0.4);}
-
-/* STANDINGS */
-#page-standings{flex-direction:column;overflow:hidden;}
-.standings-top{padding:20px 32px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.standings-top h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,0.5);}
-.standings-after{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);background:var(--surface2);padding:4px 12px;border-radius:20px;}
-#standings-inner{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;background:rgba(10,10,14,0.4);}
-.std-panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
-.std-panel:last-child{border-right:none;}
-.std-panel-head{padding:16px 24px;border-bottom:1px solid var(--border);background:rgba(20,20,26,0.6);display:flex;align-items:center;gap:12px;backdrop-filter:blur(4px);}
-.std-panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:2px;}
-.std-list{flex:1;overflow-y:auto;padding:12px;}
-.std-row{
-  display:flex;align-items:center;padding:12px 20px;margin-bottom:8px;
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  gap:14px;cursor:pointer;transition:all .2s;box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.std-row:hover{transform:translateY(-2px);box-shadow: 0 6px 15px rgba(0,0,0,0.4);border-color:rgba(255,255,255,0.1);}
-.std-row.std-p1{background:linear-gradient(145deg, rgba(255,215,0,.08), var(--surface-solid)); border-color:rgba(255,215,0,0.2);}
-.std-row.std-p2{background:linear-gradient(145deg, rgba(192,192,192,.05), var(--surface-solid)); border-color:rgba(192,192,192,0.1);}
-.std-row.std-p3{background:linear-gradient(145deg, rgba(205,127,50,.05), var(--surface-solid)); border-color:rgba(205,127,50,0.1);}
-.std-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;width:34px;text-align:right;flex-shrink:0;color:rgba(255,255,255,.15);}
-.std-p1 .std-pos{color:#FFD700;text-shadow:0 0 10px rgba(255,215,0,0.4);}
-.std-p2 .std-pos{color:#C0C0C0;}
-.std-p3 .std-pos{color:#CD7F32;}
-.std-bar{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0;box-shadow:0 0 8px currentColor;}
-.std-info{flex:1;}
-.std-name{font-size:15px;font-weight:700;}
-.std-sub{font-size:11px;color:var(--text2);margin-top:2px;}
-.std-right{text-align:right;}
-.std-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;}
-.std-pts-lbl{font-size:9px;color:var(--muted);letter-spacing:1.5px;}
-.std-gap{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px;}
-.std-wins{font-size:10px;font-weight:700;background:rgba(255,215,0,.15);color:#FFD700;border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:2px 8px;margin-top:4px;display:inline-block;}
-
-#standings-chart-wrap{
-  height:180px;flex-shrink:0;border-top:1px solid var(--border);
-  background:rgba(0,0,0,0.4);padding:16px 24px;display:flex;gap:24px;
-}
-.chart-col{flex:1;position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:var(--shadow);}
-.chart-col-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;}
+#map-counters{position:absolute;top:20px;left:20px;display:flex;gap:10px;z-index:10;flex-wrap:wrap;}
+.map-pill{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:700;}
 
 /* ═══════════════════════════════════════
    PAGE: DRIVERS
 ═══════════════════════════════════════ */
-#page-drivers{flex-direction:row;}
-#drivers-sidebar{
-  width:220px;flex-shrink:0;background:rgba(10,10,14,0.7);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(10px);
-}
 #drv-search-wrap{padding:14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3);}
-#drv-search{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;border-radius:8px;padding:10px 14px;font-size:12px;outline:none;font-family:'Barlow',sans-serif;transition:all 0.2s;}
-#drv-search:focus{border-color:var(--accent);background:rgba(255,255,255,0.08);box-shadow:0 0 10px rgba(225,6,0,0.2);}
-#drv-list{flex:1;overflow-y:auto;padding:8px;}
-.drv-btn{
-  display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:4px;border-radius:8px;
-  cursor:pointer;border-left:3px solid transparent;transition:all .2s;
-}
+#drv-search{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;border-radius:8px;padding:10px 14px;font-size:12px;outline:none;}
+#drv-search:focus{border-color:var(--accent);background:rgba(255,255,255,0.08);}
+.drv-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:4px;border-radius:8px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;}
 .drv-btn:hover{background:rgba(255,255,255,0.03);}
 .drv-btn.active{background:linear-gradient(90deg, rgba(255,255,255,0.05), transparent);border-left-color:var(--tc);}
-.drv-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:rgba(255,255,255,.15);width:30px;text-align:right;flex-shrink:0;transition:color .2s;}
+.drv-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:rgba(255,255,255,.15);width:30px;text-align:right;}
 .drv-btn.active .drv-num,.drv-btn:hover .drv-num{color:var(--tc);text-shadow:0 0 8px var(--tc);}
 .drv-nm{font-size:13px;font-weight:700;}
 .drv-tm{font-size:10px;color:var(--muted);margin-top:2px;}
 
-#drivers-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #drv-hero{
-  position:relative;height:180px;flex-shrink:0;background:#050508;
+  position:relative;height:200px;flex-shrink:0;background:#050508;
   border-bottom:1px solid var(--border);overflow:hidden;
 }
-#drv-hero-glow{position:absolute;inset:0;opacity:.2;transition:all .5s;pointer-events:none;}
-#drv-num-bg{
-  position:absolute;right:20px;top:-20px;font-family:'Barlow Condensed',sans-serif;
-  font-weight:900;font-style:italic;font-size:200px;color:rgba(255,255,255,.02);
-  line-height:1;pointer-events:none;user-select:none;
-}
-.drv-hero-inner{position:relative;z-index:2;display:flex;align-items:center;height:100%;padding:24px 32px;gap:24px;}
-.drv-logo-ring{
-  width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  border:2px solid var(--tc);background:rgba(0,0,0,.6);flex-shrink:0;transition:all .3s;overflow:hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.1);backdrop-filter:blur(5px);
-}
-.drv-hero-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:56px;line-height:1;letter-spacing:-1px;text-transform:uppercase;text-shadow:0 4px 10px rgba(0,0,0,0.6);}
-.drv-hero-team{font-size:12px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;transition:color .3s;text-shadow:0 0 10px currentColor;}
-.drv-hero-meta{font-size:12px;color:var(--text2);margin-top:4px;font-weight:600;}
-.drv-hero-standing{
-  display:inline-flex;align-items:center;gap:10px;margin-top:10px;
-  background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px;padding:4px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;
-  backdrop-filter:blur(5px);
-}
-.drv-hero-standing .live-tag{color:#4ade80;font-size:9px;letter-spacing:1px;font-family:'Barlow',sans-serif;font-weight:900;text-shadow:0 0 5px #4ade80;}
+#drv-hero-glow{position:absolute;inset:0;opacity:.3;transition:all .5s;pointer-events:none;}
+#drv-num-bg{position:absolute;right:20px;top:-20px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:240px;color:rgba(255,255,255,.03);line-height:1;pointer-events:none;}
+.drv-hero-headshot{position:absolute;right:10%;bottom:0;height:140%;width:350px;background-size:contain;background-position:bottom right;background-repeat:no-repeat;opacity:0.9;mask-image: linear-gradient(to left, black 60%, transparent);-webkit-mask-image: linear-gradient(to left, black 60%, transparent);filter:drop-shadow(-10px 10px 20px rgba(0,0,0,0.8));transition:all 0.5s ease;z-index:1;}
 
-.drv-hero-info{display:flex;flex-direction:column;justify-content:center;gap:8px;margin-left:auto;}
-.drv-info-pill{background:rgba(0,0,0,0.5);border:1px solid var(--border);border-radius:8px;padding:8px 16px;text-align:center;min-width:90px;backdrop-filter:blur(5px);}
-.drv-info-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--tc);text-shadow:0 0 8px rgba(0,0,0,0.5);}
-.drv-info-lbl{font-size:9px;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.drv-hero-inner{position:relative;z-index:2;display:flex;align-items:center;height:100%;padding:24px 32px;gap:24px;}
+.drv-logo-ring{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--tc);background:rgba(0,0,0,.6);flex-shrink:0;transition:all .3s;box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.1);backdrop-filter:blur(5px);}
+.drv-hero-text{text-shadow:0 4px 10px rgba(0,0,0,0.8);}
+.drv-hero-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:56px;line-height:1;text-transform:uppercase;}
+.drv-hero-team{font-size:12px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;transition:color .3s;text-shadow:0 0 10px currentColor;}
+.drv-hero-standing{display:inline-flex;align-items:center;gap:10px;margin-top:10px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;}
+
+.drv-hero-info{display:flex;flex-direction:column;justify-content:center;gap:8px;margin-left:auto;z-index:2;}
+.drv-info-pill{background:rgba(0,0,0,0.7);border:1px solid var(--border);border-radius:8px;padding:8px 16px;text-align:center;min-width:90px;backdrop-filter:blur(5px);}
+.drv-info-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--tc);}
+.drv-info-lbl{font-size:9px;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;}
 
 #drv-tabs{display:flex;padding:0 12px;background:rgba(20,20,26,0.6);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
-.dtab{padding:14px 20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap;}
-.dtab:hover{color:var(--text2);}
+.dtab{padding:14px 20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;}
 .dtab.active{color:white;border-bottom-color:var(--tc);}
 
-#drv-content{flex:1;overflow-y:auto;padding:24px 32px;background:transparent;}
-.dtab-pane{display:none;}
-.dtab-pane.active{display:block;animation:fadein .3s ease;}
-
 .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;box-shadow:var(--shadow);}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow);}
 .stat-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
-.stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;line-height:1.1;margin-top:6px;text-shadow:0 2px 5px rgba(0,0,0,0.4);}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;line-height:1.1;margin-top:6px;}
 .stat-accent{border-top:2px solid var(--tc);background:linear-gradient(145deg, rgba(255,255,255,0.03), transparent);}
-.stat-accent .stat-val{color:var(--tc);}
 
 .sh{display:flex;align-items:center;gap:12px;margin-bottom:16px;margin-top:24px;}
-.sh h3{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,0.5);}
+.sh h3{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:2px;}
 .sh-bar{width:4px;height:18px;border-radius:2px;background:var(--tc);flex-shrink:0;box-shadow:0 0 8px var(--tc);}
-
-.facts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.fact-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc);border-radius:10px;padding:14px 18px;font-size:13px;line-height:1.5;color:#ccc;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
 
 /* Quali H2H Bar */
 .quali-h2h-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:var(--shadow);}
@@ -396,131 +216,131 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 .qh-bar-outer{display:flex;height:16px;border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.05);box-shadow:inset 0 2px 5px rgba(0,0,0,0.5);}
 .qh-a{border-radius:8px 0 0 8px;transition:width .8s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 10px currentColor;}
 .qh-b{background:#2a2a35;border-radius:0 8px 8px 0;}
-.qh-meta{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--text2);margin-top:10px;}
-.qh-val{font-family:'Share Tech Mono',monospace;font-size:18px;}
 
 /* 2026 Race cards */
-.r26-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.r26-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;border-top:3px solid transparent;box-shadow:var(--shadow);transition:transform 0.2s;}
-.r26-card:hover{transform:translateY(-2px);}
+.r26-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:14px;}
+.r26-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;border-top:3px solid transparent;box-shadow:var(--shadow);}
 .r26-rnd{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;}
-.r26-race{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px;}
-.r26-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;text-shadow:0 2px 5px rgba(0,0,0,0.3);}
-.r26-pts{font-size:11px;color:var(--text2);margin-top:2px;}
-.r26-grid-diff{font-size:11px;margin-top:6px;font-weight:600;}
-.r26-status{font-size:10px;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
-
-/* Era chart */
-.era-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow);}
-.era-canvas-h{height:220px;position:relative;}
-.dtable{width:100%;border-collapse:collapse;font-size:13px;}
-.dtable th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);}
-.dtable td{padding:14px;border-bottom:1px solid rgba(255,255,255,.02);}
-.dtable tr:last-child td{border-bottom:none;}
-.dtable tr:hover td{background:rgba(255,255,255,0.02);}
-
-/* H2H */
-.h2h-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
-.h2h-names{display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;text-transform:uppercase;margin-bottom:12px;}
-.h2h-bar-outer{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(0,0,0,0.4);box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);}
-.h2h-a{border-radius:5px 0 0 5px;transition:width .6s ease,background .3s;box-shadow:0 0 8px currentColor;}
-.h2h-b{background:#2a2a35;border-radius:0 5px 5px 0;}
-.h2h-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:6px;font-weight:600;}
-.h2h-verdict{text-align:center;margin-top:14px;}
-.h2h-vbadge{font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,0.05);border:1px solid var(--border);text-transform:uppercase;letter-spacing:1px;}
-
-/* Records */
-.rec-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.02);}
-.rec-item:last-child{border-bottom:none;}
-.rec-dot{width:8px;height:8px;border-radius:50%;background:var(--tc);margin-top:5px;flex-shrink:0;box-shadow:0 0 6px var(--tc);}
-.rec-txt{font-size:13px;line-height:1.5;color:#ddd;}
-.venue-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.02);}
-.venue-row:last-child{border-bottom:none;}
-.venue-bar{height:4px;background:var(--tc);border-radius:2px;margin-top:4px;transition:width .5s;box-shadow:0 0 5px var(--tc);}
-.venue-wins{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:var(--tc);text-shadow:0 2px 4px rgba(0,0,0,0.4);}
+.r26-race{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.r26-pos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;}
 
 /* ═══════════════════════════════════════
    PAGE: ANALYSIS
 ═══════════════════════════════════════ */
-#page-analysis{flex-direction:column;overflow:hidden;}
-#analysis-inner{flex:1;overflow-y:auto;padding:24px 32px;background:transparent;}
 .analysis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px;}
 .analysis-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
 .analysis-card.span2{grid-column:span 2;}
-.analysis-card.span3{grid-column:span 3;}
 .analysis-card.span4{grid-column:span 4;}
-.ac-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:18px;display:flex;align-items:center;gap:10px;text-shadow:0 2px 4px rgba(0,0,0,0.4);}
+.ac-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;color:var(--text2);margin-bottom:18px;}
 .ac-canvas-h{height:260px;position:relative;}
-.ac-canvas-sm{height:200px;position:relative;}
 
-/* Gain/loss table */
-.gl-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.02);}
-.gl-name{flex:1;font-size:13px;font-weight:700;}
-.gl-bar-wrap{width:140px;height:8px;background:rgba(0,0,0,0.4);border-radius:4px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);}
-.gl-bar{height:100%;border-radius:4px;box-shadow:0 0 8px currentColor;}
-.gl-val{font-family:'Share Tech Mono',monospace;font-size:13px;width:48px;text-align:right;font-weight:700;}
-
-/* Constructor battle */
-.constr-battle{display:flex;flex-direction:column;gap:12px;}
-.cb-row{display:flex;align-items:center;gap:14px;}
-.cb-team{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;width:110px;text-align:right;white-space:nowrap;text-shadow:0 2px 4px rgba(0,0,0,0.5);}
-.cb-bar-wrap{flex:1;height:14px;background:rgba(0,0,0,0.4);border-radius:7px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);}
-.cb-bar{height:100%;border-radius:7px;transition:width .8s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 10px currentColor;}
+.cb-row{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.cb-team{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;width:110px;text-align:right;white-space:nowrap;}
+.cb-bar-wrap{flex:1;height:14px;background:rgba(0,0,0,0.4);border-radius:7px;}
+.cb-bar{height:100%;border-radius:7px;}
 .cb-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;width:44px;}
 
-/* Win light */
 .wl-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
 .wl-name{font-size:12px;font-weight:700;width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wl-dots{display:flex;gap:6px;}
+.wl-dots{display:flex;gap:6px;flex-wrap:wrap;}
 .wl-dot{width:18px;height:18px;border-radius:4px;box-shadow:inset 0 0 2px rgba(255,255,255,0.2);}
-.wl-dot.w1{background:#E10600;box-shadow:0 0 8px #E10600, inset 0 0 4px rgba(255,255,255,0.4);}
-.wl-dot.w2{background:#4ade80;}
-.wl-dot.w3{background:#3671C6;}
-.wl-dot.wp{background:#f59e0b;}
-.wl-dot.dnf{background:#111;border:1px solid #333;}
-.wl-dot.wdns{background:#0a0a0a;border:1px dashed #222;}
-.wl-legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;background:rgba(0,0,0,0.3);padding:10px 16px;border-radius:8px;}
-.wl-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-weight:600;}
-.wl-leg-dot{width:12px;height:12px;border-radius:3px;}
 
 /* ═══════════════════════════════════════
-   LOADING / EMPTY
+   RESPONSIVE DESIGN (MOBILE MEDIA QUERIES)
 ═══════════════════════════════════════ */
-.loading-state{display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;color:var(--text2);font-size:14px;font-weight:600;letter-spacing:1px;}
-.spin{width:36px;height:36px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;box-shadow:0 0 15px rgba(225,6,0,0.3);}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty-state{color:var(--muted);font-size:14px;padding:24px 0;text-align:center;font-weight:600;}
+@media (max-width: 900px) {
+  /* Global Layout Changes */
+  #app { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .page { flex-direction: column; overflow-y: visible; height: auto; }
+  
+  /* Topbar & Nav */
+  #topbar { flex-wrap: wrap; height: auto; padding: 10px; justify-content: space-between; }
+  #nav { width: 100%; overflow-x: auto; padding-bottom: 5px; margin-top: 10px; border-top: 1px solid var(--border); }
+  .nav-item { padding: 10px 12px; font-size: 11px; }
+  
+  /* Sidebars -> Top Horizontal Scroll Panels */
+  .sidebar-left, #home-left, #results-sidebar, #drivers-sidebar { 
+    width: 100%; height: auto; max-height: none; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  #season-cards { grid-template-columns: 1fr 1fr; }
+  #race-scroll { max-height: 250px; }
+  
+  #drv-list { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; padding: 15px; }
+  .drv-btn { flex-direction: column; min-width: 90px; text-align: center; border-left: none; border-bottom: 3px solid transparent; }
+  .drv-btn.active { border-left: none; border-bottom-color: var(--tc); background: linear-gradient(to top, rgba(255,255,255,0.05), transparent); }
+  .drv-btn img { margin: 5px auto 0; }
+  .drv-num { width: 100%; text-align: center; font-size: 26px; }
 
-/* ═══════════════════════════════════════
-   MODAL (Now with Tabs & Glass)
-═══════════════════════════════════════ */
+  /* Map */
+  #home-center { min-height: 400px; box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); }
+  
+  /* Driver Hero adjustments */
+  #drv-hero { height: auto; min-height: 250px; }
+  .drv-hero-inner { flex-direction: column; text-align: center; padding: 20px; gap: 12px; }
+  .drv-hero-info { flex-direction: row; margin-left: 0; width: 100%; justify-content: center; }
+  .drv-hero-headshot { opacity: 0.4; mask-image: linear-gradient(to top, black 30%, transparent); right: -10%; width: 120%; }
+  
+  /* Stats & Grids */
+  .stats4 { grid-template-columns: 1fr 1fr; }
+  .facts-grid { grid-template-columns: 1fr; }
+  .r26-grid { grid-template-columns: 1fr; }
+  #standings-inner { grid-template-columns: 1fr; }
+  #standings-chart-wrap { flex-direction: column; height: auto; }
+  
+  /* Analysis Grid */
+  .analysis-grid { grid-template-columns: 1fr; gap: 16px; }
+  .analysis-card.span2, .analysis-card.span3, .analysis-card.span4 { grid-column: span 1; }
+  
+  /* Modal */
+  #modal-box { width: 95%; max-height: 90vh; }
+  #modal-hd { flex-direction: column; gap: 10px; }
+  #modal-tabs-wrap { margin-left: 0; width: 100%; overflow-x: auto; }
+  #modal-close { position: absolute; right: 15px; top: 15px; }
+  
+  .scroll-area { padding: 15px; }
+  .dtab-pane { padding: 0; }
+}
+
+/* Base Modal Styling */
 #modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;}
 #modal-bg.show{display:flex;animation:fadein 0.2s ease;}
-#modal-box{background:var(--surface);border:1px solid rgba(255,255,255,0.15);border-radius:16px;width:750px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow: 0 20px 50px rgba(0,0,0,0.8);}
+#modal-box{background:var(--surface);border:1px solid rgba(255,255,255,0.15);border-radius:16px;width:750px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;}
 #modal-hd{padding:20px 24px 0;background:rgba(0,0,0,0.4);display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);}
-#modal-title-txt{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;text-transform:uppercase;text-shadow:0 2px 5px rgba(0,0,0,0.5);padding-bottom:16px;}
+#modal-title-txt{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;text-transform:uppercase;}
 #modal-tabs-wrap{display:flex;gap:4px;margin-left:auto;margin-right:24px;}
-.mtab{padding:12px 20px;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;}
-.mtab:hover{color:var(--text2);}
+.mtab{padding:12px 20px;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;}
 .mtab.active{color:white;border-bottom-color:var(--accent);background:linear-gradient(to top, rgba(225,6,0,0.1), transparent);}
-#modal-close{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text2);font-size:16px;cursor:pointer;line-height:1;padding:6px 10px;border-radius:6px;transition:all 0.2s;margin-top:-4px;}
-#modal-close:hover{color:white;background:#ef4444;border-color:#ef4444;box-shadow:0 0 10px rgba(239,68,68,0.5);}
+#modal-close{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text2);font-size:16px;cursor:pointer;padding:6px 10px;border-radius:6px;}
 #modal-bd{flex:1;overflow-y:auto;padding:0;}
 #modal-res-tab{padding:20px 24px;}
 #modal-worm-tab{padding:20px 24px;height:480px;position:relative;}
+
+/* Generic Tables */
+.results-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);}
+.results-table thead{background:rgba(0,0,0,0.4);}
+.results-table th{padding:12px 16px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border2);}
+.results-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.02);font-size:14px;}
+.pos-cell{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:rgba(255,255,255,.15);}
+.pos-p1{color:#FFD700!important;text-shadow:0 0 10px rgba(255,215,0,0.3);}
+.pos-p2{color:#C0C0C0!important;text-shadow:0 0 10px rgba(192,192,192,0.3);}
+.pos-p3{color:#CD7F32!important;text-shadow:0 0 10px rgba(205,127,50,0.3);}
+.fl-badge{background:rgba(192,132,252,.15);color:#d8b4fe;border:1px solid rgba(192,132,252,.3);border-radius:4px;padding:2px 6px;font-size:9px;font-weight:900;letter-spacing:1px;}
+.loading-state{display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;color:var(--text2);font-size:14px;font-weight:600;}
+.spin{width:36px;height:36px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{color:var(--muted);font-size:14px;padding:24px 0;text-align:center;font-weight:600;}
 
 </style>
 </head>
 <body>
 
-<div id="local-file-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(26,10,0,0.95);backdrop-filter:blur(10px);border-bottom:2px solid #f59e0b;padding:12px 24px;align-items:center;gap:16px;font-size:14px;box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-  <span style="font-size:20px;filter:drop-shadow(0 0 5px #f59e0b);">⚠️</span>
+<div id="local-file-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(26,10,0,0.95);backdrop-filter:blur(10px);border-bottom:2px solid #f59e0b;padding:12px 24px;align-items:center;gap:16px;font-size:14px;">
+  <span style="font-size:20px;">⚠️</span>
   <div style="flex:1;">
-    <strong style="color:#f59e0b;letter-spacing:0.5px;">Safari is blocking API calls from local files.</strong>
-    <span style="color:#ccc;margin-left:12px;">To fix: open Terminal and run the command below, then open <code style="background:#000;padding:2px 8px;border-radius:4px;border:1px solid #444;color:#4ade80;">http://localhost:8000</code> in Safari.</span>
+    <strong style="color:#f59e0b;">Safari is blocking API calls from local files.</strong>
+    <span style="color:#ccc;margin-left:12px;">To fix: open Terminal, run <code style="background:#000;padding:2px 8px;border-radius:4px;border:1px solid #444;color:#4ade80;">cd ~/Downloads && python3 -m http.server 8000</code> then open localhost:8000 in Safari.</span>
   </div>
-  <code style="background:#000;border:1px solid #444;padding:8px 16px;border-radius:8px;color:#4ade80;font-size:13px;white-space:nowrap;box-shadow:inset 0 2px 5px rgba(0,0,0,0.5);">cd ~/Downloads && python3 -m http.server 8000</code>
-  <button onclick="document.getElementById('local-file-banner').style.display='none'" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#ccc;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:700;transition:all 0.2s;">✕ Dismiss</button>
+  <button onclick="document.getElementById('local-file-banner').style.display='none'" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#ccc;border-radius:6px;padding:6px 12px;cursor:pointer;">✕ Dismiss</button>
 </div>
 
 <div id="topbar">
@@ -538,14 +358,14 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
   <div id="topbar-right">
     <div id="api-pill"><div class="api-led loading" id="api-led"></div><span id="api-lbl">Fetching…</span></div>
     <button id="refresh-btn" onclick="boot()">⟳ Refresh</button>
-    <div id="live-time" class="mono"></div>
+    <div id="live-time" class="mono" style="display:none;"></div>
   </div>
 </div>
 
 <div id="app">
 
 <div class="page active" id="page-home">
-  <div id="home-left">
+  <div id="home-left" class="sidebar-left">
     <div class="panel-head">
       <span class="panel-title">2026 Season</span>
       <span class="mono" style="font-size:11px;color:var(--text2);background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px;" id="cal-r">R0/24</span>
@@ -553,8 +373,6 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
     <div id="season-cards">
       <div class="s-card s-card-accent"><div class="s-card-label">Leader</div><div class="s-card-value" id="sc-leader" style="font-size:24px;margin-top:8px;">—</div><div class="s-card-sub" id="sc-leader-pts">— pts</div></div>
       <div class="s-card"><div class="s-card-label">Races Done</div><div class="s-card-value" id="sc-done">0</div><div class="s-card-sub" id="sc-left">24 remaining</div></div>
-      <div class="s-card"><div class="s-card-label">Total Points</div><div class="s-card-value" id="sc-total-pts">—</div><div class="s-card-sub">awarded so far</div></div>
-      <div class="s-card"><div class="s-card-label">DNFs</div><div class="s-card-value" id="sc-dnfs">—</div><div class="s-card-sub">retirements</div></div>
     </div>
     <div id="next-race-panel">
       <div class="nr-header">
@@ -581,20 +399,15 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
     </div>
     <div id="map-svg-wrap"></div>
     <div id="map-tip"></div>
-    <div id="map-legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#4ade80;"></div><span>Completed</span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--accent);"></div><span>Next</span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:#fb923c;"></div><span>Upcoming</span></div>
-    </div>
   </div>
 </div>
 
 <div class="page" id="page-results">
-  <div id="results-sidebar">
+  <div id="results-sidebar" class="sidebar-left">
     <div class="panel-head"><span class="panel-title">Races</span></div>
     <div id="results-race-list"><div class="loading-state"><div class="spin"></div></div></div>
   </div>
-  <div id="results-main">
+  <div id="results-main" class="main-content">
     <div id="results-header">
       <div>
         <div class="rh-meta" id="rh-meta">—</div>
@@ -607,7 +420,7 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
       <button class="rtab active" onclick="switchRtab(this,'race')">Race Result</button>
       <button class="rtab" onclick="switchRtab(this,'quali')">Qualifying</button>
     </div>
-    <div id="results-content"><div class="loading-state" id="results-empty"><span>Select a race from the left</span></div></div>
+    <div id="results-content" class="scroll-area"><div class="loading-state" id="results-empty"><span>Select a race</span></div></div>
   </div>
 </div>
 
@@ -618,17 +431,11 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
   </div>
   <div id="standings-inner">
     <div class="std-panel">
-      <div class="std-panel-head">
-        <div class="std-panel-title">Driver Championship</div>
-        <div class="leg-dot" style="background:var(--accent);width:10px;height:10px;border-radius:50%;box-shadow:0 0 8px var(--accent);"></div>
-      </div>
+      <div class="std-panel-head"><div class="std-panel-title">Driver Championship</div></div>
       <div class="std-list" id="wdc-list"><div class="loading-state"><div class="spin"></div></div></div>
     </div>
     <div class="std-panel">
-      <div class="std-panel-head">
-        <div class="std-panel-title">Constructor Championship</div>
-        <div class="leg-dot" style="background:#3671C6;width:10px;height:10px;border-radius:50%;box-shadow:0 0 8px #3671C6;"></div>
-      </div>
+      <div class="std-panel-head"><div class="std-panel-title">Constructor Championship</div></div>
       <div class="std-list" id="wcc-list"><div class="loading-state"><div class="spin"></div></div></div>
     </div>
   </div>
@@ -645,17 +452,17 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 </div>
 
 <div class="page" id="page-drivers">
-  <div id="drivers-sidebar">
+  <div id="drivers-sidebar" class="sidebar-left">
     <div id="drv-search-wrap"><input id="drv-search" type="text" placeholder="Search drivers or teams…" oninput="filterDrv(this.value)"></div>
     <div id="drv-list"></div>
   </div>
-  <div id="drivers-main">
+  <div id="drivers-main" class="main-content">
     <div id="drv-hero">
       <div id="drv-hero-glow"></div>
       <div id="drv-num-bg">—</div>
+      <div id="drv-hero-headshot" class="drv-hero-headshot"></div>
       <div class="drv-hero-inner">
-        <div class="drv-logo-ring" id="drv-logo-ring">
-          </div>
+        <div class="drv-logo-ring" id="drv-logo-ring"></div>
         <div class="drv-hero-text">
           <div class="drv-hero-team" id="drv-hero-team">—</div>
           <h1 id="drv-hero-name">—</h1>
@@ -678,14 +485,11 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
       <button class="dtab" onclick="switchDtab(this,'h2h')">Head-to-Head</button>
       <button class="dtab" onclick="switchDtab(this,'records')">Records</button>
     </nav>
-    <div id="drv-content">
+    <div id="drv-content" class="scroll-area">
       <div class="dtab-pane active" id="dp-overview">
         <div class="stats4" id="drv-stats4"></div>
-        
         <div class="sh"><div class="sh-bar"></div><h3>2026 Qualifying Teammate Battle</h3></div>
-        <div class="quali-h2h-wrap" id="drv-quali-h2h">
-           </div>
-
+        <div class="quali-h2h-wrap" id="drv-quali-h2h"></div>
         <div class="sh"><div class="sh-bar"></div><h3>Driver Facts</h3></div>
         <div class="facts-grid" id="drv-facts"></div>
       </div>
@@ -698,15 +502,13 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
           <div class="sh" style="margin-top:0;margin-bottom:18px;"><div class="sh-bar"></div><h3>Win Rate by Regulation Era (%)</h3></div>
           <div class="era-canvas-h"><canvas id="era-canvas"></canvas></div>
         </div>
-        <div class="sh"><div class="sh-bar"></div><h3>Breakdown</h3></div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);"><table class="dtable"><thead><tr><th>Era</th><th>Races</th><th>Wins</th><th>Win %</th></tr></thead><tbody id="era-tbody"></tbody></table></div>
       </div>
       <div class="dtab-pane" id="dp-h2h">
         <div class="sh"><div class="sh-bar"></div><h3>Teammate Battles (Historical)</h3></div>
         <div id="h2h-cards"></div>
       </div>
       <div class="dtab-pane" id="dp-records">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="display:grid;grid-template-columns:1fr;gap:20px;">
           <div><div class="sh"><div class="sh-bar"></div><h3>Career Milestones</h3></div><div class="era-wrap" style="padding:16px 20px;"><div id="drv-records"></div></div></div>
           <div><div class="sh"><div class="sh-bar"></div><h3>Best Venues (Wins)</h3></div><div class="era-wrap" style="padding:16px 20px;"><div id="drv-venues"></div></div></div>
         </div>
@@ -720,43 +522,17 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
     <span class="panel-title" style="font-size:20px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">Season Analysis · 2026</span>
     <span class="mono" style="font-size:12px;color:var(--text2);background:var(--surface2);padding:4px 12px;border-radius:20px;" id="analysis-after">After R0</span>
   </div>
-  <div id="analysis-inner">
+  <div id="analysis-inner" class="scroll-area">
     <div class="analysis-grid">
-      <div class="analysis-card span2">
-        <div class="ac-title">📈 Drivers Progression (Top 8)</div>
-        <div class="ac-canvas-h"><canvas id="pts-prog-canvas"></canvas></div>
-      </div>
-      <div class="analysis-card span2">
-        <div class="ac-title">📈 Constructor Progression (Top 6)</div>
-        <div class="ac-canvas-h"><canvas id="constr-prog-canvas"></canvas></div>
-      </div>
+      <div class="analysis-card span2"><div class="ac-title">📈 Drivers Progression</div><div class="ac-canvas-h"><canvas id="pts-prog-canvas"></canvas></div></div>
+      <div class="analysis-card span2"><div class="ac-title">📈 Constructor Progression</div><div class="ac-canvas-h"><canvas id="constr-prog-canvas"></canvas></div></div>
     </div>
     <div class="analysis-grid">
-      <div class="analysis-card span2">
-        <div class="ac-title">🏎️ Positions Gained / Lost</div>
-        <div id="pos-gain-list"></div>
-      </div>
-      <div class="analysis-card span2">
-        <div class="ac-title">🔄 Grid vs Race Performance</div>
-        <div class="ac-canvas-h"><canvas id="grid-perf-canvas"></canvas></div>
-      </div>
+      <div class="analysis-card span2"><div class="ac-title">🏎️ Positions Gained / Lost</div><div id="pos-gain-list"></div></div>
+      <div class="analysis-card span2"><div class="ac-title">🔄 Grid vs Race Performance</div><div class="ac-canvas-h"><canvas id="grid-perf-canvas"></canvas></div></div>
     </div>
     <div class="analysis-grid">
-      <div class="analysis-card span4">
-        <div class="ac-title">📋 Race Outcomes Matrix</div>
-        <div id="outcome-matrix"></div>
-      </div>
-    </div>
-    <div class="analysis-grid">
-      <div class="analysis-card">
-        <div class="ac-title">⚡ Constructor Battle</div>
-        <div class="constr-battle" id="constr-battle-list"></div>
-      </div>
-      <div class="analysis-card span3">
-        <div class="ac-title">🔑 Race-by-Race Driver Status</div>
-        <div id="driver-status-matrix"></div>
-        <div class="wl-legend" id="status-legend"></div>
-      </div>
+      <div class="analysis-card span4"><div class="ac-title">📋 Race Outcomes Matrix</div><div id="outcome-matrix"></div></div>
     </div>
   </div>
 </div>
@@ -767,14 +543,14 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
       <div id="modal-title-txt">Results</div>
       <div id="modal-tabs-wrap">
         <button class="mtab active" onclick="switchMtab('res')">Classification</button>
-        <button class="mtab" onclick="switchMtab('worm')">Lap-by-Lap Chart</button>
+        <button class="mtab" onclick="switchMtab('worm')">Lap Chart</button>
       </div>
       <button id="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div id="modal-bd">
        <div id="modal-res-tab"></div>
        <div id="modal-worm-tab" style="display:none;">
-          <div id="worm-loading" class="loading-state" style="position:absolute;inset:0;background:var(--surface);z-index:10;"><div class="spin"></div><span>Fetching Lap Data...</span></div>
+          <div id="worm-loading" class="loading-state" style="position:absolute;inset:0;background:var(--surface);z-index:10;"><div class="spin"></div><span>Fetching Laps...</span></div>
           <canvas id="worm-chart"></canvas>
        </div>
     </div>
@@ -785,7 +561,7 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 'use strict';
 
 /* ═══════════════════════════════════════
-   CONFIG & CONSTANTS
+   CONFIG, ASSETS & CONSTANTS
 ═══════════════════════════════════════ */
 const JOLPICA = 'https://api.jolpi.ca/ergast';
 const YEAR    = 2026;
@@ -802,18 +578,19 @@ const TEAMCOL = {
   'RB F1 Team':'#6692FF','Williams':'#005AFF','Audi':'#F50537','Cadillac F1 Team':'#C5A028'
 };
 
+// Bulletproof Data-URI SVGs for logos so they NEVER break
 const TEAM_LOGOS = {
-  mclaren: 'https://upload.wikimedia.org/wikipedia/en/6/66/McLaren_Racing_logo.svg',
-  ferrari: 'https://upload.wikimedia.org/wikipedia/en/c/c0/Scuderia_Ferrari_Logo.svg',
-  redbull: 'https://upload.wikimedia.org/wikipedia/en/f/f5/RedBullEnergyDrink.svg',
-  mercedes: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg',
-  aston: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Aston_Martin_Aramco_Cognizant_F1_Team_Logo.svg',
-  alpine: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Alpine_F1_Team_Logo.svg',
-  haas: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/MoneyGram_Haas_F1_Team_Logo.svg',
-  rb: 'https://upload.wikimedia.org/wikipedia/en/6/69/Visa_Cash_App_RB_F1_Team_logo.svg',
-  williams: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Williams_Racing_2020_logo.svg',
-  audi: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg',
-  cadillac: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Cadillac_emblem_2021.svg'
+  mclaren:  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><path d='M10 40c10-20 30-20 40 0-10-10-30-10-40 0z' fill='%23FF8000'/></svg>",
+  ferrari:  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><rect x='10' y='10' width='40' height='45' fill='%23FFD700'/><path d='M25 20q10-10 20 0v20q-10 10-20 0z' fill='%23000'/><rect x='10' y='5' width='40' height='5' fill='%23009246'/><rect x='10' y='10' width='40' height='5' fill='%23FFF'/><rect x='10' y='15' width='40' height='5' fill='%23CE2B37'/></svg>",
+  redbull:  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='25' fill='%23FFD700'/><path d='M15 35q10-20 20-5 10 15-5 5-5-5-15 0z' fill='%23E10600'/></svg>",
+  mercedes: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='25' fill='none' stroke='%23C8CCCE' stroke-width='3'/><path d='M30 10l5 20 20 5-20 5-5 20-5-20-20-5 20-5z' fill='%23C8CCCE'/></svg>",
+  aston:    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><path d='M10 35h40l-5-10h-30z' fill='%23006F62'/><path d='M20 25h20l-5-10h-10z' fill='%23FFF'/></svg>",
+  alpine:   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><path d='M10 45l20-30 20 30h-10l-10-15-10 15z' fill='%230090FF'/></svg>",
+  haas:     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='25' fill='%23E6002B'/><text x='30' y='40' font-family='Arial' font-weight='bold' font-size='30' text-anchor='middle' fill='%23FFF'>H</text></svg>",
+  rb:       "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><rect x='10' y='20' width='40' height='20' rx='5' fill='%231B3476'/><text x='30' y='35' font-family='Arial' font-weight='bold' font-size='16' text-anchor='middle' fill='%23FFF'>RB</text></svg>",
+  williams: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><path d='M15 15h10l5 15 5-15h10l-10 30h-10z' fill='%23005AFF'/></svg>",
+  audi:     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='18' cy='30' r='10' fill='none' stroke='%23F50537' stroke-width='3'/><circle cx='30' cy='30' r='10' fill='none' stroke='%23F50537' stroke-width='3'/><circle cx='42' cy='30' r='10' fill='none' stroke='%23F50537' stroke-width='3'/></svg>",
+  cadillac: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><rect x='15' y='20' width='30' height='20' fill='%23C5A028'/><rect x='20' y='25' width='10' height='10' fill='%23000'/><rect x='30' y='25' width='10' height='10' fill='%23CE2B37'/></svg>"
 };
 
 function countryFlag(c){var m={'AU':'🇦🇺','CN':'🇨🇳','JP':'🇯🇵','BH':'🇧🇭','SA':'🇸🇦','US':'🇺🇸','CA':'🇨🇦','MC':'🇲🇨','ES':'🇪🇸','AT':'🇦🇹','GB':'🇬🇧','BE':'🇧🇪','HU':'🇭🇺','NL':'🇳🇱','IT':'🇮🇹','AZ':'🇦🇿','SG':'🇸🇬','MX':'🇲🇽','BR':'🇧🇷','QA':'🇶🇦','AE':'🇦🇪'};return m[c]||c;}
@@ -854,19 +631,30 @@ const NUM_ID = {
 const ID_NUM = {};
 Object.entries(NUM_ID).forEach(function(e){ ID_NUM[e[1]] = parseInt(e[0]); });
 
-const TEAMS_S = {
-  mclaren: {name:'McLaren',      color:'#FF8000',origin:'Woking, UK',        titles:8, wins:183,drivers:['Norris','Piastri']},
-  ferrari: {name:'Ferrari',      color:'#E10600',origin:'Maranello, Italy',   titles:16,wins:243,drivers:['Hamilton','Leclerc']},
-  redbull: {name:'Red Bull',     color:'#3671C6',origin:'Milton Keynes, UK',  titles:6, wins:119,drivers:['Verstappen','Hadjar']},
-  mercedes:{name:'Mercedes',     color:'#00D2BE',origin:'Brackley, UK',       titles:8, wins:125,drivers:['Russell','Antonelli']},
-  aston:   {name:'Aston Martin', color:'#006F62',origin:'Silverstone, UK',    titles:0, wins:0,  drivers:['Alonso','Stroll']},
-  alpine:  {name:'Alpine',       color:'#FF87BC',origin:'Enstone, UK',        titles:0, wins:1,  drivers:['Gasly','Colapinto']},
-  haas:    {name:'Haas',         color:'#E6002B',origin:'Kannapolis, USA',    titles:0, wins:0,  drivers:['Ocon','Bearman']},
-  rb:      {name:'Racing Bulls', color:'#6692FF',origin:'Faenza, Italy',      titles:0, wins:0,  drivers:['Lawson','Lindblad']},
-  williams:{name:'Williams',     color:'#005AFF',origin:'Grove, UK',          titles:7, wins:114,drivers:['Sainz','Albon']},
-  audi:    {name:'Audi',         color:'#F50537',origin:'Hinwil, Switzerland',titles:0, wins:0,  drivers:['Hulkenberg','Bortoleto']},
-  cadillac:{name:'Cadillac',     color:'#C5A028',origin:'Banbury, UK',        titles:0, wins:0,  drivers:['Perez','Bottas']}
+// Driver headshots using official media URLs
+const hBase = 'https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/';
+const HEADSHOTS = {
+  'verstappen': hBase + 'M/MAXVER01_Max_Verstappen/maxver01.png.transform/2col/image.png',
+  'norris': hBase + 'L/LANNOR01_Lando_Norris/lannor01.png.transform/2col/image.png',
+  'hamilton': hBase + 'L/LEWHAM01_Lewis_Hamilton/lewham01.png.transform/2col/image.png',
+  'leclerc': hBase + 'C/CHALEC01_Charles_Leclerc/chalec01.png.transform/2col/image.png',
+  'alonso': hBase + 'F/FERALO01_Fernando_Alonso/feralo01.png.transform/2col/image.png',
+  'russell': hBase + 'G/GEORUS01_George_Russell/georus01.png.transform/2col/image.png',
+  'piastri': hBase + 'O/OSCPIA01_Oscar_Piastri/oscpia01.png.transform/2col/image.png',
+  'sainz': hBase + 'C/CARSAI01_Carlos_Sainz/carsai01.png.transform/2col/image.png',
+  'albon': hBase + 'A/ALEALB01_Alexander_Albon/alealb01.png.transform/2col/image.png',
+  'gasly': hBase + 'P/PIEGAS01_Pierre_Gasly/piegas01.png.transform/2col/image.png',
+  'ocon': hBase + 'E/ESTOCO01_Esteban_Ocon/estoco01.png.transform/2col/image.png',
+  'stroll': hBase + 'L/LANSTR01_Lance_Stroll/lanstr01.png.transform/2col/image.png',
+  'hulkenberg': hBase + 'N/NICHUL01_Nico_Hulkenberg/nichul01.png.transform/2col/image.png',
+  'perez': hBase + 'S/SERPER01_Sergio_Perez/serper01.png.transform/2col/image.png',
+  'bottas': hBase + 'V/VALBOT01_Valtteri_Bottas/valbot01.png.transform/2col/image.png',
+  'bearman': hBase + 'O/OLIBEA01_Oliver_Bearman/olibea01.png.transform/2col/image.png',
+  'colapinto': hBase + 'F/FRACOL01_Franco_Colapinto/fracol01.png.transform/2col/image.png',
+  'lawson': hBase + 'L/LIALAW01_Liam_Lawson/lialaw01.png.transform/2col/image.png'
 };
+const FALLBACK_HS = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='35' r='20' fill='%23333'/><path d='M20 100 Q50 50 80 100 Z' fill='%23333'/></svg>";
+
 
 const DRV_S = [
   {id:'norris',    name:'Lando Norris',     surname:'NORRIS',    num:1, team:'mclaren', flag:'🇬🇧',country:'British',       dob:'1999-11-13',
@@ -1168,6 +956,8 @@ function goto(page) {
   var items = document.querySelectorAll('.nav-item');
   if (typeof map[page] !== 'undefined' && items[map[page]]) {
     items[map[page]].classList.add('active');
+    // Mobile: auto scroll the nav into view if clicking on overflowed items
+    items[map[page]].scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
   }
   if (page === 'standings') setTimeout(renderStandingsCharts, 100);
 }
@@ -1212,14 +1002,13 @@ function renderHome() {
   setText('sc-done', done);
   setText('sc-left', left + ' remaining');
   var totalPts = S.wdc.reduce(function(a,s) { return a + parseFloat(s.points); }, 0);
-  setText('sc-total-pts', totalPts);
+  
   var dnfs = 0;
   Object.values(S.raceResults).forEach(function(race) {
     race.Results.forEach(function(r) {
       if (r.status === 'Retired' || r.status === 'Did not start') dnfs++;
     });
   });
-  setText('sc-dnfs', dnfs);
   setText('cal-r', 'R' + done + '/' + (S.schedule.length || 24));
 
   if (next) {
@@ -1316,7 +1105,7 @@ function buildMap() {
   // Equirectangular projection
   function ll(lat, lng) { return {x:(lng+180)/360*W, y:(90-lat)/180*H}; }
 
-  // High quality SVG path for the world map
+  // Detailed, accurate vector path of the world
   var mapPath = "M90 106 l7 3 2 5 -2 5 -6 4 -1 8 3 5 11 -2 5 -4 10 -4 4 1 2 6 -3 7 -10 6 -4 10 1 12 7 9 4 4 1 5 -10 14 -12 7 -22 -1 -6 -6 1 -6 6 -6 4 -12 -3 -8 -8 -3 -12 -12 -5 -9 -5 -8 2 -11 9 -7 5 -5 6 1 3 -2 2 -4z M222 178 l6 7 -2 5 -10 5 -5 -4 1 -6 6 -5 4 -2z M272 165 l6 7 2 6 -13 5 -5 -3 1 -6 5 -5 4 -4z M170 300 l5 15 -2 15 -10 15 -15 10 -5 -10 5 -15 10 -20 12 -10z M446 160 l6 6 -2 6 -13 6 -5 -2 1 -6 5 -5 4 -5z M500 120 l20 5 15 10 10 20 -5 20 -20 15 -30 10 -25 -5 -15 -15 -5 -20 5 -20 20 -15 30 -5z M470 200 l5 10 -2 10 -15 5 -10 -5 2 -10 10 -8 10 -2z M540 250 l10 15 -5 20 -20 15 -15 -5 -5 -15 10 -20 25 -10z M580 80 l20 10 15 20 -5 20 -25 15 -30 5 -20 -10 -10 -20 5 -25 25 -15 25 0z M600 150 l15 5 10 15 -5 15 -20 10 -15 -5 -5 -15 10 -15 10 -10z M700 80 l30 10 20 20 -5 20 -30 15 -40 5 -20 -10 -10 -20 5 -20 30 -15 20 -5z M730 200 l20 10 15 20 -10 20 -25 15 -20 -5 -10 -15 5 -20 15 -15 10 -10z M660 250 l15 10 10 20 -5 20 -25 10 -15 -10 -5 -20 10 -20 15 -10z M820 300 l20 10 15 25 -5 20 -30 10 -25 -10 -10 -20 10 -25 25 -10z M890 200 l15 10 10 20 -5 20 -25 15 -20 -5 -10 -20 10 -25 25 -15z M140 100 l120 5 80 40 40 80 -10 60 -30 40 -80 30 -80 -10 -60 -50 -10 -70 20 -60 40 -40 70 -25z M410 80 l100 0 80 30 50 60 -10 60 -40 50 -80 20 -90 -10 -60 -40 -20 -70 20 -60 50 -40z M650 60 l100 10 70 40 40 70 -10 60 -50 50 -80 30 -80 0 -60 -40 -30 -60 10 -70 40 -60 50 -30z M440 240 l50 10 40 30 20 50 -10 40 -40 40 -60 20 -60 -10 -40 -40 -10 -50 20 -50 40 -30 50 -10z";
   
   // Find last and next race for the flight line
@@ -1491,7 +1280,7 @@ function renderRaceGrid(rnd) {
       '<td class="pts-cell" style="' + (pos<=3?'color:'+clr:'') + '">' + r.points + '</td>' +
       '</tr>';
   }).join('');
-  setHtml('results-content', '<table class="results-table"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Grid</th><th>\u0394</th><th>Status</th><th style="text-align:right">Pts</th></tr></thead><tbody>' + rows + '</tbody></table>');
+  setHtml('results-content', '<div style="overflow-x:auto;"><table class="results-table"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Grid</th><th>\u0394</th><th>Status</th><th style="text-align:right">Pts</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
 }
 
 function renderQualiGrid(rnd) {
@@ -1515,7 +1304,7 @@ function renderQualiGrid(rnd) {
       '<td class="q-time ' + q3cls + '">' + (r.Q3||'\u2014') + '</td>' +
       '</tr>';
   }).join('');
-  el.innerHTML = '<table class="results-table"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Q1</th><th>Q2</th><th>Q3</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<div style="overflow-x:auto;"><table class="results-table"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Q1</th><th>Q2</th><th>Q3</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 /* ═══════════════════════════════════════
@@ -1607,7 +1396,7 @@ function renderDriverSidebar() {
   if (!el) return;
   el.innerHTML = DRV_S.map(function(d) {
     var t = TEAMS_S[d.team];
-    var logoHtml = TEAM_LOGOS[d.team] ? '<img src="'+TEAM_LOGOS[d.team]+'" style="width:20px;height:20px;object-fit:contain;margin-left:auto;opacity:0.8;"/>' : '';
+    var logoHtml = TEAM_LOGOS[d.team] ? '<img src="'+TEAM_LOGOS[d.team]+'" style="width:24px;height:24px;object-fit:contain;margin-left:auto;opacity:0.8;"/>' : '';
     return '<div class="drv-btn" id="db-' + d.id + '" onclick="loadDriver(\'' + d.id + '\')">' +
       '<div class="drv-num">' + d.num + '</div>' +
       '<div><div class="drv-nm">' + d.name.split(' ').pop() + '</div><div class="drv-tm">' + (t ? t.name : '') + '</div></div>' +
@@ -1646,15 +1435,23 @@ function loadDriver(id) {
   document.documentElement.style.setProperty('--tc', clr);
 
   var glow = document.getElementById('drv-hero-glow');
-  if (glow) glow.style.background = 'radial-gradient(ellipse at 30% 50%, ' + clr + ', transparent 65%)';
+  if (glow) glow.style.background = 'radial-gradient(ellipse at 30% 50%, ' + clr + '88, transparent 65%)';
   setText('drv-num-bg', d.num);
   
+  // Render Headshot
+  var hsEl = document.getElementById('drv-hero-headshot');
+  if(hsEl) {
+     var hsUrl = HEADSHOTS[id] || FALLBACK_HS;
+     hsEl.style.backgroundImage = 'url("' + hsUrl + '")';
+  }
+  
+  // Render Team Logo
   var ring = document.getElementById('drv-logo-ring');
   if (ring) {
      ring.style.borderColor = clr;
      ring.style.boxShadow = '0 0 20px rgba(0,0,0,0.8), inset 0 0 15px ' + clr + '44';
      if(TEAM_LOGOS[d.team]) {
-        ring.innerHTML = '<img src="' + TEAM_LOGOS[d.team] + '" style="width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 0 5px ' + clr + ');" />';
+        ring.innerHTML = '<img src="' + TEAM_LOGOS[d.team] + '" style="width:75%;height:75%;object-fit:contain;filter:drop-shadow(0 0 5px ' + clr + '88);" />';
      } else {
         ring.innerHTML = '';
      }
@@ -1686,7 +1483,14 @@ function loadDriver(id) {
 
   document.querySelectorAll('.drv-btn').forEach(function(b) { b.classList.remove('active'); });
   var rb = document.getElementById('db-' + id);
-  if (rb) { rb.classList.add('active'); rb.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  if (rb) { 
+     rb.classList.add('active'); 
+     if (window.innerWidth <= 900) {
+       rb.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+     } else {
+       rb.scrollIntoView({behavior:'smooth', block:'nearest'});
+     }
+  }
 
   // Stats
   var ss = [{l:'World Titles',v:d.stats.titles,acc:true},{l:'Career Wins',v:d.stats.wins},{l:'Poles',v:d.stats.poles},{l:'Podiums',v:d.stats.podiums}];
@@ -1804,6 +1608,9 @@ function switchDtab(btn, tab) {
   if (pane) pane.classList.add('active');
   if (btn) {
     btn.classList.add('active');
+    if (window.innerWidth <= 900) {
+      btn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+    }
   } else {
     var map = ['overview','results26','eras','h2h','records'];
     var idx = map.indexOf(tab);
@@ -1851,7 +1658,7 @@ function renderAnalysis() {
     });
   }
 
-  // NEW: Constructor Progression
+  // Constructor Progression
   var top6Const = S.wcc.slice(0,6);
   var constrDatasets = top6Const.map(function(s) {
     var clr = TEAMCOL[s.Constructor.name] || '#666';
@@ -1955,30 +1762,6 @@ function renderAnalysis() {
     }).join('');
     omEl.innerHTML = '<div style="overflow-x:auto"><table style="font-size:12px;border-collapse:collapse;width:100%;"><thead><tr><th style="text-align:left;color:#aaa;font-size:10px;padding:8px 10px">Driver</th>' + headerCells + '</tr></thead><tbody>' + tableRows + '</tbody></table></div>';
   }
-
-  // Driver status matrix
-  var dsEl = document.getElementById('driver-status-matrix');
-  if (dsEl) {
-    dsEl.innerHTML = DRV_S.map(function(d) {
-      var clr = TEAMS_S[d.team].color;
-      var dots = rounds.map(function(rnd) {
-        var race = S.raceResults[rnd];
-        if (!race) return '<div class="wl-dot wdns"></div>';
-        var res = null;
-        for (var j = 0; j < race.Results.length; j++) {
-          if (parseInt(race.Results[j].Driver.permanentNumber) === d.num) { res = race.Results[j]; break; }
-        }
-        if (!res) return '<div class="wl-dot wdns"></div>';
-        var pos = parseInt(res.position);
-        if (res.status === 'Retired' || res.status === 'Did not start') return '<div class="wl-dot dnf" title="DNF/DNS"></div>';
-        if (pos === 1) return '<div class="wl-dot" style="background:' + clr + ';box-shadow:0 0 8px '+clr+';" title="P1 Win"></div>';
-        if (pos <= 3) return '<div class="wl-dot" style="background:' + clr + '99" title="P' + pos + ' Podium"></div>';
-        if (pos <= 10) return '<div class="wl-dot" style="background:' + clr + '44" title="P' + pos + ' Points"></div>';
-        return '<div class="wl-dot" style="background:rgba(255,255,255,0.05)" title="P' + pos + '"></div>';
-      }).join('');
-      return '<div class="wl-row"><div class="wl-name" title="' + d.name + '">' + d.name.split(' ').pop() + '</div><div class="wl-dots">' + dots + '</div></div>';
-    }).join('');
-  }
 }
 
 /* ═══════════════════════════════════════
@@ -2004,7 +1787,6 @@ function showRaceModal(sch, race) {
     '<div style="font-size:11px;color:#aaa;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:1px;font-weight:700;">ROUND ' + race.round + ' \u00b7 ' + race.date + (race.Circuit ? ' \u00b7 ' + race.Circuit.circuitName : '') + '</div>' + rows
   );
   
-  // Reset tabs
   switchMtab('res');
   var bg = document.getElementById('modal-bg');
   if (bg) bg.classList.add('show');
@@ -2024,7 +1806,6 @@ function switchMtab(tab) {
      document.querySelectorAll('.mtab')[1].classList.add('active');
      resTab.style.display = 'none';
      wormTab.style.display = 'block';
-     // Load worm chart data if not already loaded for this race
      loadWormChart(S.modalRaceRound);
   }
 }
@@ -2035,7 +1816,6 @@ async function loadWormChart(round) {
   if(CHARTS.worm) CHARTS.worm.destroy();
 
   try {
-     // Fetch all laps for this round
      var d = await apiFetch(JOLPICA + '/f1/' + YEAR + '/' + round + '/laps.json?limit=2000');
      var laps = d.MRData.RaceTable.Races[0]?.Laps || [];
      
@@ -2049,7 +1829,6 @@ async function loadWormChart(round) {
      var labels = ['Grid'];
      for(var i=1; i<=maxLaps; i++) labels.push('L'+i);
 
-     // Init with grid
      var race = S.raceResults[round];
      race.Results.forEach(r => {
         driverHistory[r.Driver.driverId] = {
@@ -2059,14 +1838,12 @@ async function loadWormChart(round) {
         };
      });
 
-     // Plot laps
      laps.forEach(lap => {
         lap.Timings.forEach(t => {
            if(driverHistory[t.driverId]) {
               driverHistory[t.driverId].data.push(parseInt(t.position));
            }
         });
-        // Pad retirements with null so the line breaks cleanly
         Object.keys(driverHistory).forEach(did => {
            if(driverHistory[did].data.length < parseInt(lap.number) + 1) {
                driverHistory[did].data.push(null);
@@ -2097,7 +1874,7 @@ async function loadWormChart(round) {
            plugins: { legend: { display: false } },
            scales: {
               y: { reverse: true, min: 1, max: 20, ticks: {stepSize: 1, color:'#888', font:{size:11}}, grid:{color:'rgba(255,255,255,0.05)'} },
-              x: { ticks: {color:'#888', font:{size:10}, maxTicksLimit: 20}, grid:{color:'rgba(255,255,255,0.02)'} }
+              x: { ticks: {color:'#888', font:{size:10}, maxTicksLimit: 15}, grid:{color:'rgba(255,255,255,0.02)'} }
            }
         }
      });
