@@ -964,17 +964,16 @@ function killChart(k) {
    API — fixed: async, try/catch everywhere, no .json() double-parse
 ═══════════════════════════════════════ */
 async function apiFetch(url) {
-  // AbortController gives us a 10-second timeout
-  var controller = new AbortController();
-  var timer = setTimeout(function() { controller.abort(); }, 10000);
+  console.log('[F1] Fetching:', url);
   try {
-    var res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
+    var res = await fetch(url);
+    console.log('[F1] Response:', url, res.status, res.ok);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' from ' + url);
+    var data = await res.json();
+    console.log('[F1] Parsed OK:', url);
+    return data;
   } catch(err) {
-    clearTimeout(timer);
-    if (err.name === 'AbortError') throw new Error('Timeout fetching: ' + url);
+    console.error('[F1] FAILED:', url, err.name, err.message);
     throw err;
   }
 }
@@ -995,8 +994,9 @@ async function boot() {
     ]);
     setStatus('ok', 'Live \u00b7 ' + new Date().toLocaleTimeString());
   } catch(err) {
-    console.error('API fetch error:', err.message || err);
-    setStatus('err', err.message || 'API error');
+    var msg = err.message || String(err) || 'Unknown error';
+    console.error('[F1] Boot failed:', msg);
+    setStatus('err', msg.slice(0, 60));
   }
 
   if (btn) { btn.textContent = '\u21b3 Refresh'; btn.disabled = false; }
