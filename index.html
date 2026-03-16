@@ -257,16 +257,16 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 /* ═══════════════════════════════════════
    PAGE: STANDINGS
 ═══════════════════════════════════════ */
-#page-standings{flex-direction:column;overflow:hidden;}
+#page-standings{flex-direction:column;overflow-y:auto;overflow-x:hidden;}
 .standings-top{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .standings-top h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:2px;}
 .standings-after{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);}
-#standings-inner{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;}
-.std-panel{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
+#standings-inner{display:grid;grid-template-columns:1fr 1fr;min-height:0;}
+.std-panel{display:flex;flex-direction:column;border-right:1px solid var(--border);}
 .std-panel:last-child{border-right:none;}
 .std-panel-head{padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:10px;}
 .std-panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:2px;}
-.std-list{flex:1;overflow-y:auto;}
+.std-list{padding:16px;}
 .std-row{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 16px;margin:0 16px 8px;border-radius:12px;
@@ -296,10 +296,11 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 
 /* Points chart below standings */
 #standings-chart-wrap{
-  height:140px;flex-shrink:0;border-top:1px solid var(--border);
-  background:var(--bg2);padding:12px 20px;display:flex;gap:20px;
+  border-top:1px solid var(--border);
+  background:var(--bg2);padding:20px;
+  display:flex;gap:20px;height:220px;align-items:stretch;
 }
-.chart-col{flex:1;position:relative;}
+.chart-col{flex:1;position:relative;min-height:0;display:flex;flex-direction:column;}
 .chart-col-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
 
 /* ═══════════════════════════════════════
@@ -326,15 +327,16 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 .drv-tm{font-size:9px;color:var(--muted);}
 
 #drivers-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#drv-hero{position:relative;height:200px;flex-shrink:0;background:#050508;border-bottom:1px solid var(--border);overflow:hidden;}
+#drv-hero{
+  position:relative;height:210px;flex-shrink:0;
+  background:#050508;border-bottom:1px solid var(--border);overflow:hidden;
+}
 #drv-headshot{
-  /* Flex item - stays inside hero, no absolute escape */
-  flex-shrink:0; width:220px; height:100%;
-  background-size:contain; background-position:bottom center; background-repeat:no-repeat;
-  -webkit-mask-image:linear-gradient(to left, black 30%, rgba(0,0,0,0.3) 65%, transparent 95%);
-  mask-image:linear-gradient(to left, black 30%, rgba(0,0,0,0.3) 65%, transparent 95%);
+  position:absolute;right:0;top:0;bottom:0;width:50%;z-index:1;
+  background-size:contain;background-position:bottom right;background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.5) 45%,transparent 80%);
+  mask-image:linear-gradient(to left,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.5) 45%,transparent 80%);
   transition:background-image .3s ease;
-  align-self:stretch; margin-right:-28px;
 }
 #drv-hero-glow{position:absolute;inset:0;opacity:.12;transition:all .5s;pointer-events:none;}
 #drv-num-bg{
@@ -342,7 +344,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   font-weight:900;font-style:italic;font-size:160px;color:rgba(255,255,255,.035);
   line-height:1;pointer-events:none;user-select:none;
 }
-.drv-hero-inner{position:relative;z-index:2;display:flex;align-items:center;height:100%;padding:20px 28px;gap:18px;overflow:hidden;}
+.drv-hero-inner{
+  position:relative;z-index:2;
+  display:flex;align-items:center;
+  height:100%;padding:20px 24px;gap:16px;
+  width:58%;
+}
 .drv-logo-ring{
   width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   border:2px solid var(--tc);background:rgba(0,0,0,.5);flex-shrink:0;transition:border-color .3s;overflow:hidden;
@@ -356,9 +363,13 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   border-radius:20px;padding:3px 11px;font-family:'Share Tech Mono',monospace;font-size:10px;
 }
 .drv-hero-standing .live-tag{color:#22c55e;font-size:8px;letter-spacing:1px;}
-
-/* Driver DOB/age stat */
-.drv-hero-info{display:flex;flex-direction:column;justify-content:center;gap:4px;margin-left:auto;}
+/* Age/pts pills positioned absolutely top-right of hero */
+#drv-info-pills{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  z-index:3;display:flex;flex-direction:column;gap:6px;
+  /* Sits over the headshot in top-right of hero */
+}
+.drv-hero-info{display:none;}
 .drv-info-pill{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;text-align:center;min-width:80px;}
 .drv-info-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--tc);}
 .drv-info-lbl{font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
@@ -581,13 +592,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   .results-race-btn { padding: 12px !important; }
 
   /* ── STANDINGS ── */
-  #page-standings { overflow: visible !important; }
-  #standings-inner { display: flex !important; flex-direction: column !important; overflow: visible !important; }
-  .std-panel { overflow: visible !important; }
-  .std-list { overflow: visible !important; padding: 10px !important; }
-  #standings-chart-wrap { flex-direction: column !important; height: auto !important; padding: 12px !important; gap: 12px !important; }
-  .chart-col { min-height: 150px !important; }
-  .std-row { padding: 10px 12px !important; margin: 0 0 7px !important; }
+  #page-standings { overflow-y: auto !important; overflow-x: hidden !important; }
+  #standings-inner { grid-template-columns: 1fr !important; }
+  .std-list { padding: 10px 8px !important; }
+  #standings-chart-wrap { flex-direction: column !important; height: auto !important; padding: 14px !important; gap: 16px !important; }
+  .chart-col { height: 180px !important; min-height: 180px !important; flex-shrink: 0 !important; }
+  .std-row { padding: 10px 12px !important; margin: 0 8px 7px !important; }
   .std-pos { font-size: 18px !important; width: 28px !important; min-width: 28px !important; }
   .std-name { font-size: 13px !important; }
   .std-pts { font-size: 20px !important; }
@@ -681,6 +691,19 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   .analysis-grid { display: flex !important; flex-direction: column !important; gap: 14px !important; }
   .span2, .span3 { grid-column: auto !important; }
 
+  /* Driver hero mobile */
+  #drv-hero { height: 175px !important; }
+  #drv-headshot { width: 48% !important; }
+  .drv-hero-inner { width: 60% !important; padding: 14px 14px !important; gap: 10px !important; }
+  #drv-info-pills { right: 4px !important; top: 10px !important; transform: none !important; gap: 5px !important; }
+  .drv-info-pill { padding: 5px 8px !important; min-width: 48px !important; }
+  .drv-info-val { font-size: 15px !important; }
+  .drv-info-lbl { font-size: 7px !important; }
+  .drv-logo-ring { width: 46px !important; height: 46px !important; }
+  .drv-hero-text h1 { font-size: 32px !important; }
+  .drv-hero-team { font-size: 9px !important; }
+  .drv-hero-meta { font-size: 9px !important; }
+  #drv-num-bg { font-size: 140px !important; right: 5px !important; top: -8px !important; }
 }
 </style>
 </head>
@@ -823,11 +846,15 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   <div id="standings-chart-wrap">
     <div class="chart-col">
       <div class="chart-col-title">Points Gap — Top 6 Drivers</div>
-      <canvas id="pts-gap-chart"></canvas>
+      <div style="position:relative;flex:1;min-height:70px;">
+        <canvas id="pts-gap-chart"></canvas>
+      </div>
     </div>
     <div class="chart-col">
       <div class="chart-col-title">Constructor Points</div>
-      <canvas id="constr-chart"></canvas>
+      <div style="position:relative;flex:1;min-height:70px;">
+        <canvas id="constr-chart"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -840,16 +867,19 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
   <div id="drivers-main">
     <div id="drv-hero">
+      <!-- Background glow (team color) -->
       <div id="drv-hero-glow"></div>
+      <!-- Big number background -->
       <div id="drv-num-bg">—</div>
+      <!-- Driver headshot - absolute right side -->
+      <div id="drv-headshot"></div>
+      <!-- Main content row - left side -->
       <div class="drv-hero-inner">
-        <!-- Logo ring -->
         <div class="drv-logo-ring" id="drv-logo-ring">
           <img id="drv-logo-img" alt="" style="width:72%;height:72%;object-fit:contain;display:none"/>
           <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:85%;height:85%;"></svg>
         </div>
-        <!-- Driver text info -->
-        <div class="drv-hero-text" style="flex:1;min-width:0;">
+        <div class="drv-hero-text">
           <div class="drv-hero-team" id="drv-hero-team">—</div>
           <h1 id="drv-hero-name">—</h1>
           <div class="drv-hero-meta" id="drv-hero-meta">—</div>
@@ -858,14 +888,11 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
             <span id="drv-std-pos">P—</span>·<span id="drv-std-pts">— pts</span>·<span id="drv-std-wins">— wins</span>
           </div>
         </div>
-        <!-- Age + pts pills -->
-        <div class="drv-hero-info">
-          <div class="drv-info-pill"><div class="drv-info-val" id="drv-age">—</div><div class="drv-info-lbl">Age</div></div>
-          <div style="height:6px;"></div>
-          <div class="drv-info-pill"><div class="drv-info-val" id="drv-2026pts">—</div><div class="drv-info-lbl">2026 pts</div></div>
-        </div>
-        <!-- Headshot: natural flex item, stays inside hero -->
-        <div id="drv-headshot"></div>
+      </div>
+      <!-- Age + pts - absolute, top-right of the left content area -->
+      <div id="drv-info-pills">
+        <div class="drv-info-pill"><div class="drv-info-val" id="drv-age">—</div><div class="drv-info-lbl">Age</div></div>
+        <div class="drv-info-pill"><div class="drv-info-val" id="drv-2026pts">—</div><div class="drv-info-lbl">2026 pts</div></div>
       </div>
     </div>
     <nav id="drv-tabs">
@@ -1830,10 +1857,8 @@ function renderStandings() {
         var gap = pos === 1 ? '\u2014' : '-' + (cleader - parseFloat(s.points));
         var wins = parseInt(s.wins) > 0 ? '<div class="std-wins">' + s.wins + (s.wins!='1'?' WINS':' WIN') + '</div>' : '';
         return '<div class="std-row ' + pc + '">' +
-          '<div class="std-pos">' + pos + '</div>' +
-          '<div class="std-bar" style="background:' + clr + '"></div>' +
-          '<div class="std-info"><div class="std-name">' + s.Constructor.name + '</div><div class="std-sub" style="font-size:9px">Constructor</div>' + wins + '</div>' +
-          '<div class="std-right"><div class="std-pts" style="' + (pos<=3?'color:'+clr:'') + '">' + s.points + '</div><div class="std-pts-lbl">PTS</div><div class="std-gap">' + gap + '</div></div>' +
+          '<div class="std-left-group"><div class="std-pos">' + pos + '</div><div class="std-bar" style="background:' + clr + ';box-shadow:0 0 8px ' + clr + '"></div><div class="std-info"><div class="std-name">' + s.Constructor.name + '</div><div class="std-sub">Constructor</div>' + wins + '</div></div>' +
+          '<div class="std-right-group"><div class="std-pts" style="' + (pos<=3?'color:'+clr+';text-shadow:0 0 10px '+clr:'') + '">' + s.points + '</div><div class="std-pts-lbl">PTS</div><div class="std-gap">' + gap + '</div></div>' +
           '</div>';
       }).join('');
     }
@@ -1851,7 +1876,7 @@ function renderStandingsCharts() {
     CHARTS.ptsGap = new Chart(c1.getContext('2d'), {
       type:'bar',
       data:{labels:top6.map(function(s){return s.Driver.familyName;}), datasets:[{data:top6.map(function(s){return parseFloat(s.points);}), backgroundColor:clrs.map(function(c){return c+'aa';}), borderColor:clrs, borderWidth:2, borderRadius:5}]},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:'rgba(255,255,255,.04)'}, ticks:{color:'#666',font:{size:9}}}, x:{grid:{display:false}, ticks:{color:'#888',font:{size:10}}}}}
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){return c.raw+' pts';}}}}, scales:{y:{beginAtZero:true, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#888',font:{size:10},maxTicksLimit:5}}, x:{grid:{display:false}, ticks:{color:'#ccc',font:{size:11,weight:'bold'}}}}}
     });
   }
   if (!S.wcc.length) return;
@@ -1862,7 +1887,7 @@ function renderStandingsCharts() {
     CHARTS.constr = new Chart(c2.getContext('2d'), {
       type:'doughnut',
       data:{labels:S.wcc.map(function(s){return s.Constructor.name;}), datasets:[{data:S.wcc.map(function(s){return parseFloat(s.points)||0.5;}), backgroundColor:cclrs.map(function(c){return c+'aa';}), borderColor:cclrs, borderWidth:2}]},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, cutout:'65%'}
+      options:{responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{display:true, position:'right', labels:{color:'#aaa',font:{size:10},padding:8,boxWidth:12,usePointStyle:true}}, tooltip:{callbacks:{label:function(c){return c.label+': '+c.raw+' pts';}}}}}
     });
   }
 }
