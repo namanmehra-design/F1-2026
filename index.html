@@ -327,14 +327,22 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 
 #drivers-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #drv-hero{position:relative;height:200px;flex-shrink:0;background:#050508;border-bottom:1px solid var(--border);overflow:hidden;}
-#drv-headshot{position:absolute;right:0;top:0;bottom:0;width:55%;z-index:1;background-size:contain;background-position:bottom right;background-repeat:no-repeat;-webkit-mask-image:linear-gradient(to left,black 25%,rgba(0,0,0,.4) 55%,transparent 85%);mask-image:linear-gradient(to left,black 25%,rgba(0,0,0,.4) 55%,transparent 85%);transition:background-image .3s;}
+#drv-headshot{
+  /* Flex item - stays inside hero, no absolute escape */
+  flex-shrink:0; width:220px; height:100%;
+  background-size:contain; background-position:bottom center; background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(to left, black 30%, rgba(0,0,0,0.3) 65%, transparent 95%);
+  mask-image:linear-gradient(to left, black 30%, rgba(0,0,0,0.3) 65%, transparent 95%);
+  transition:background-image .3s ease;
+  align-self:stretch; margin-right:-28px;
+}
 #drv-hero-glow{position:absolute;inset:0;opacity:.12;transition:all .5s;pointer-events:none;}
 #drv-num-bg{
   position:absolute;right:16px;top:-12px;font-family:'Barlow Condensed',sans-serif;
   font-weight:900;font-style:italic;font-size:160px;color:rgba(255,255,255,.035);
   line-height:1;pointer-events:none;user-select:none;
 }
-.drv-hero-inner{position:relative;z-index:2;display:flex;align-items:center;height:100%;padding:20px 28px;gap:18px;}
+.drv-hero-inner{position:relative;z-index:2;display:flex;align-items:center;height:100%;padding:20px 28px;gap:18px;overflow:hidden;}
 .drv-logo-ring{
   width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   border:2px solid var(--tc);background:rgba(0,0,0,.5);flex-shrink:0;transition:border-color .3s;overflow:hidden;
@@ -615,7 +623,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 
   /* ── DRIVER HERO ── */
   #drv-hero { height: 175px !important; }
-  #drv-headshot { width: 42% !important; }
+  #drv-headshot { width: 140px !important; margin-right: -16px !important; }
   #drv-num-bg { font-size: 160px !important; right: 5px !important; top: -15px !important; }
   .drv-hero-inner { padding: 14px 16px !important; gap: 12px !important; width: 62% !important; }
   .drv-logo-ring { width: 46px !important; height: 46px !important; }
@@ -834,13 +842,14 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
     <div id="drv-hero">
       <div id="drv-hero-glow"></div>
       <div id="drv-num-bg">—</div>
-      <div id="drv-headshot"></div>
       <div class="drv-hero-inner">
+        <!-- Logo ring -->
         <div class="drv-logo-ring" id="drv-logo-ring">
           <img id="drv-logo-img" alt="" style="width:72%;height:72%;object-fit:contain;display:none"/>
           <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:85%;height:85%;"></svg>
         </div>
-        <div class="drv-hero-text">
+        <!-- Driver text info -->
+        <div class="drv-hero-text" style="flex:1;min-width:0;">
           <div class="drv-hero-team" id="drv-hero-team">—</div>
           <h1 id="drv-hero-name">—</h1>
           <div class="drv-hero-meta" id="drv-hero-meta">—</div>
@@ -849,11 +858,14 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
             <span id="drv-std-pos">P—</span>·<span id="drv-std-pts">— pts</span>·<span id="drv-std-wins">— wins</span>
           </div>
         </div>
+        <!-- Age + pts pills -->
         <div class="drv-hero-info">
           <div class="drv-info-pill"><div class="drv-info-val" id="drv-age">—</div><div class="drv-info-lbl">Age</div></div>
           <div style="height:6px;"></div>
           <div class="drv-info-pill"><div class="drv-info-val" id="drv-2026pts">—</div><div class="drv-info-lbl">2026 pts</div></div>
         </div>
+        <!-- Headshot: natural flex item, stays inside hero -->
+        <div id="drv-headshot"></div>
       </div>
     </div>
     <nav id="drv-tabs">
@@ -1863,8 +1875,9 @@ function renderDriverSidebar(){
   if(!el)return;
   el.innerHTML=DRV_S.map(function(d){
     var t=TEAMS_S[d.team], tclr=t?t.color:'#444';
-    // Small team color badge - always renders, no network needed
-    var badge='<div style="width:18px;height:18px;border-radius:4px;background:'+tclr+';flex-shrink:0;margin-left:auto;opacity:0.85;box-shadow:0 0 6px '+tclr+'66"></div>';
+    var lurl=TEAM_LOGOS[d.team];
+    var badge='<div style="width:14px;height:28px;border-radius:3px;background:'+tclr+';flex-shrink:0;margin-left:auto;opacity:0.9"></div>';
+    if(lurl) badge='<img src="'+lurl+'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0;margin-left:auto;opacity:0.85" onerror="this.style.display=\'none\'"/>';
     return '<div class="drv-btn" id="db-'+d.id+'" data-id="'+d.id+'">' +
       '<div style="width:3px;height:36px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-right:2px"></div>' +
       '<div class="drv-num" style="color:rgba(255,255,255,.15)">'+d.num+'</div>' +
