@@ -295,13 +295,9 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 .std-wins{font-size:9px;background:rgba(255,215,0,.08);color:#FFD700;border-radius:10px;padding:1px 8px;margin-top:3px;display:inline-block;}
 
 /* Points chart below standings */
-#standings-chart-wrap{
-  border-top:1px solid var(--border);
-  background:var(--bg2);padding:20px;
-  display:flex;gap:20px;height:220px;align-items:stretch;
-}
-.chart-col{flex:1;position:relative;min-height:0;display:flex;flex-direction:column;}
-.chart-col-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+#standings-chart-wrap{border-top:1px solid var(--border);background:var(--bg2);padding:20px 24px;display:flex;gap:24px;height:240px;align-items:stretch;flex-shrink:0;}
+.chart-col{flex:1;display:flex;flex-direction:column;min-width:0;}
+.chart-col-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;flex-shrink:0;}
 
 /* ═══════════════════════════════════════
    PAGE: DRIVERS
@@ -350,10 +346,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   height:100%;padding:20px 24px;gap:16px;
   width:58%;
 }
-.drv-logo-ring{
-  width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  border:2px solid var(--tc);background:rgba(0,0,0,.5);flex-shrink:0;transition:border-color .3s;overflow:hidden;
-}
+.drv-logo-ring{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--tc);background:#000;flex-shrink:0;transition:border-color .3s,box-shadow .3s;overflow:hidden;}
 .drv-hero-text h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-style:italic;font-size:48px;line-height:1;letter-spacing:-1px;text-transform:uppercase;}
 .drv-hero-team{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;transition:color .3s;}
 .drv-hero-meta{font-size:10px;color:var(--muted);margin-top:3px;}
@@ -364,11 +357,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
 }
 .drv-hero-standing .live-tag{color:#22c55e;font-size:8px;letter-spacing:1px;}
 /* Age/pts pills positioned absolutely top-right of hero */
-#drv-info-pills{
-  position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  z-index:3;display:flex;flex-direction:column;gap:6px;
-  /* Sits over the headshot in top-right of hero */
-}
+#drv-info-pills{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;gap:8px;}
 .drv-hero-info{display:none;}
 .drv-info-pill{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;text-align:center;min-width:80px;}
 .drv-info-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--tc);}
@@ -512,18 +501,19 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
    RESPONSIVE - MOBILE
 ═══════════════════════════════════════ */
 
+
+#drv-logo-img{mix-blend-mode:multiply;filter:contrast(1.1);}
+.drv-btn img{mix-blend-mode:multiply;}
+
 @media (max-width: 900px) {
 
-  /* ── Core layout ── */
   body { overflow-y: auto !important; height: auto !important; }
   #app { flex-direction: column !important; overflow: visible !important; padding-bottom: 68px !important; }
-
-  /* All pages stack vertically */
   .page { height: auto !important; min-height: 0 !important; overflow: visible !important; }
   .page.active { display: flex !important; flex-direction: column !important; height: auto !important; overflow: visible !important; }
   #page-home, #page-results, #page-drivers { flex-direction: column !important; }
 
-  /* ── Topbar ── */
+  /* Topbar */
   #topbar { padding: 0 14px !important; height: 50px !important; position: sticky !important; top: 0 !important; z-index: 500 !important; }
   #nav { display: none !important; }
   #live-time { display: none !important; }
@@ -531,12 +521,10 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   #api-pill { padding: 4px 10px !important; font-size: 10px !important; }
   #refresh-btn { padding: 5px 10px !important; font-size: 10px !important; }
 
-  /* ── Mobile Bottom Nav ── */
+  /* Mobile nav */
   #nav-mobile {
-    display: flex !important;
-    position: fixed !important; bottom: 0 !important; left: 0 !important;
-    width: 100% !important; height: 60px !important;
-    background: rgba(5,5,8,0.98) !important;
+    display: flex !important; position: fixed !important; bottom: 0 !important; left: 0 !important;
+    width: 100% !important; height: 60px !important; background: rgba(5,5,8,0.98) !important;
     backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
     border-top: 1px solid var(--border) !important; z-index: 1000 !important;
     justify-content: space-around !important; align-items: stretch !important;
@@ -544,166 +532,100 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   .mob-nav-btn {
     flex: 1 !important; display: flex !important; flex-direction: column !important;
     align-items: center !important; justify-content: center !important; gap: 3px !important;
-    background: none !important; border: none !important;
-    border-top: 2px solid transparent !important;
+    background: none !important; border: none !important; border-top: 2px solid transparent !important;
     color: #555 !important; font-size: 9px !important; font-weight: 700 !important;
-    text-transform: uppercase !important; letter-spacing: 0.5px !important;
-    cursor: pointer !important; padding: 4px 0 !important;
+    text-transform: uppercase !important; letter-spacing: 0.5px !important; cursor: pointer !important;
   }
   .mob-nav-btn.active { color: var(--accent) !important; border-top-color: var(--accent) !important; }
   .mob-nav-icon { font-size: 19px !important; line-height: 1 !important; }
 
-  /* ── Sidebars → full width stacked ── */
+  /* Sidebars stacked */
   #home-left, #results-sidebar, #drivers-sidebar {
     width: 100% !important; border-right: none !important;
-    border-bottom: 1px solid var(--border) !important;
-    height: auto !important; flex-shrink: 0 !important;
+    border-bottom: 1px solid var(--border) !important; height: auto !important; flex-shrink: 0 !important;
   }
   #home-left { max-height: 400px !important; overflow-y: auto !important; }
   #results-sidebar { max-height: 180px !important; overflow-y: auto !important; }
-  #drivers-sidebar { max-height: none !important; }
-  .main-content, #results-main, #drivers-main { overflow: visible !important; width: 100% !important; }
+  #results-main, #drivers-main { overflow: visible !important; width: 100% !important; }
 
-  /* ── HOME ── */
+  /* Home */
   #season-cards { grid-template-columns: 1fr 1fr !important; padding: 10px 12px !important; gap: 8px !important; }
   .s-card { padding: 12px !important; }
   .s-card-value { font-size: 26px !important; }
   #next-race-panel { margin: 0 12px 10px !important; }
   .nr-name { font-size: 20px !important; }
-  .nr-count-num { font-size: 20px !important; }
-  #home-center { min-height: 260px !important; height: 260px !important; flex-shrink: 0 !important; width: 100% !important; }
-  #map-counters { top: 6px !important; left: 6px !important; gap: 5px !important; }
-  .map-pill { font-size: 10px !important; padding: 3px 8px !important; }
-  .race-entry { padding: 10px 14px !important; }
-  .re-country { font-size: 13px !important; }
+  #home-center { min-height: 260px !important; height: 260px !important; width: 100% !important; flex-shrink: 0 !important; }
+  #race-scroll { flex: none !important; height: 160px !important; overflow-y: auto !important; }
 
-  /* ── RESULTS ── */
+  /* Results */
   #results-header { padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
-  .rh-title { font-size: 22px !important; line-height: 1 !important; }
+  .rh-title { font-size: 22px !important; }
   .rh-badges { flex-wrap: wrap !important; gap: 6px !important; }
-  .rh-badge { padding: 8px 12px !important; }
-  .rh-badge-val { font-size: 16px !important; }
-  .rh-circuit { font-size: 11px !important; }
-  #results-content { padding: 10px !important; }
-  .data-table-wrap { border-radius: 8px !important; }
-  .data-table th { padding: 8px 10px !important; font-size: 9px !important; }
-  .data-table td { padding: 8px 10px !important; font-size: 12px !important; }
-  .cell-pos { font-size: 18px !important; }
-  .results-race-btn { padding: 12px !important; }
+  .scroll-area { overflow-x: auto !important; }
 
-  /* ── STANDINGS ── */
+  /* Standings */
   #page-standings { overflow-y: auto !important; overflow-x: hidden !important; }
   #standings-inner { grid-template-columns: 1fr !important; }
-  .std-list { padding: 10px 8px !important; }
-  #standings-chart-wrap { flex-direction: column !important; height: auto !important; padding: 14px !important; gap: 16px !important; }
-  .chart-col { height: 180px !important; min-height: 180px !important; flex-shrink: 0 !important; }
-  .std-row { padding: 10px 12px !important; margin: 0 8px 7px !important; }
+  .std-list { padding: 8px !important; }
+  #standings-chart-wrap { flex-direction: column !important; height: auto !important; padding: 16px !important; gap: 16px !important; }
+  .chart-col { height: 200px !important; flex-shrink: 0 !important; }
+  .std-row { padding: 10px 12px !important; margin: 0 6px 7px !important; }
   .std-pos { font-size: 18px !important; width: 28px !important; min-width: 28px !important; }
-  .std-name { font-size: 13px !important; }
   .std-pts { font-size: 20px !important; }
 
-  /* ── DRIVERS: horizontal scroll strip ── */
+  /* Drivers list - horizontal scroll */
   #drv-search-wrap { padding: 8px 12px !important; }
   #drv-list {
     display: flex !important; flex-direction: row !important;
     overflow-x: auto !important; overflow-y: hidden !important;
     padding: 6px 10px 8px !important; gap: 6px !important;
     height: 78px !important; align-items: center !important;
-    min-height: 78px !important; flex-shrink: 0 !important;
-    -webkit-overflow-scrolling: touch !important;
+    -webkit-overflow-scrolling: touch !important; flex-shrink: 0 !important;
   }
   .drv-btn {
     flex-direction: column !important; min-width: 62px !important; max-width: 62px !important;
     border-left: none !important; border-bottom: 2px solid transparent !important;
     align-items: center !important; text-align: center !important;
-    padding: 5px 3px !important; justify-content: center !important;
-    flex-shrink: 0 !important; gap: 1px !important; border-radius: 6px !important;
+    padding: 5px 3px !important; justify-content: center !important; flex-shrink: 0 !important;
   }
-  .drv-btn.active {
-    border-left: none !important; border-bottom-color: var(--tc) !important;
-    background: rgba(255,255,255,0.05) !important;
-  }
-  /* Hide the color bar in mobile driver list */
+  .drv-btn.active { border-left: none !important; border-bottom-color: var(--tc) !important; background: rgba(255,255,255,0.05) !important; }
   .drv-btn > div[style*="width:3px"] { display: none !important; }
   .drv-nm { font-size: 10px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; width: 100% !important; }
   .drv-tm { display: none !important; }
   .drv-num { font-size: 15px !important; width: auto !important; line-height: 1 !important; }
-  /* Hide team badge in mobile driver list */
+  .drv-btn img { display: none !important; }
   .drv-btn > div[style*="border-radius:4px"] { display: none !important; }
 
-  /* ── DRIVER HERO ── */
-  #drv-hero { height: 175px !important; }
-  #drv-headshot { width: 140px !important; margin-right: -16px !important; }
-  #drv-num-bg { font-size: 160px !important; right: 5px !important; top: -15px !important; }
-  .drv-hero-inner { padding: 14px 16px !important; gap: 12px !important; width: 62% !important; }
-  .drv-logo-ring { width: 46px !important; height: 46px !important; }
+  /* Driver hero */
+  #drv-hero { height: 200px !important; }
+  #drv-headshot { width: 50% !important; }
+  .drv-hero-inner { width: 58% !important; padding: 16px !important; gap: 12px !important; }
+  .drv-logo-ring { width: 48px !important; height: 48px !important; }
   .drv-hero-text h1 { font-size: 34px !important; }
-  .drv-hero-team { font-size: 9px !important; letter-spacing: 2px !important; }
+  .drv-hero-team { font-size: 9px !important; }
   .drv-hero-meta { font-size: 9px !important; }
-  .drv-info-pill { padding: 4px 8px !important; }
-  .drv-info-val { font-size: 14px !important; }
+  #drv-num-bg { font-size: 150px !important; }
+  #drv-info-pills { right: 8px !important; top: 12px !important; transform: none !important; gap: 6px !important; }
+  .drv-info-pill { padding: 5px 10px !important; min-width: 52px !important; }
+  .drv-info-val { font-size: 16px !important; }
   .drv-info-lbl { font-size: 7px !important; }
-  .drv-hero-standing { font-size: 10px !important; gap: 5px !important; }
 
-  /* ── DRIVER CONTENT ── */
+  /* Driver content */
   #drv-tabs { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
   .dtab { padding: 10px 12px !important; font-size: 10px !important; white-space: nowrap !important; }
   #drv-content { padding: 12px !important; }
   .stats4 { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .stat-card { padding: 12px !important; }
-  .stat-val { font-size: 28px !important; }
-  .stat-label { font-size: 9px !important; }
   .r26-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .r26-card { padding: 12px !important; }
-  .r26-pos { font-size: 30px !important; }
-  .sh h3 { font-size: 13px !important; }
   .facts-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .fact-card { padding: 10px 12px !important; font-size: 12px !important; }
-  .h2h-wrap { padding: 14px !important; }
 
-  /* ── ANALYSIS ── */
+  /* Analysis */
   #page-analysis { overflow: visible !important; }
-  .analysis-grid { display: flex !important; flex-direction: column !important; gap: 12px !important; }
+  .analysis-grid { display: flex !important; flex-direction: column !important; gap: 14px !important; }
   .analysis-card { padding: 14px !important; }
   .ac-canvas-h { height: 200px !important; }
-  .ac-title { font-size: 13px !important; margin-bottom: 12px !important; }
-  .gl-row { font-size: 12px !important; }
-  .gl-name { width: 80px !important; font-size: 11px !important; }
 
-  /* ── MODAL ── */
+  /* Modal */
   #modal-box { width: 96% !important; max-height: 88vh !important; }
-  #modal-title-txt { font-size: 18px !important; }
-  #modal-hd { padding: 14px 16px 0 !important; }
-
-
-  #race-scroll { flex: none !important; height: 160px !important; overflow-y: auto !important; min-height: 100px !important; }
-  #home-left { overflow: hidden !important; }
-  /* Results table scroll */
-  .scroll-area { overflow-x: auto !important; }
-  .data-table { min-width: 480px !important; font-size: 11px !important; }
-  .data-table th { padding: 7px 8px !important; font-size: 8px !important; }
-  .data-table td { padding: 7px 8px !important; font-size: 11px !important; }
-  .cell-pos { font-size: 16px !important; }
-  /* Results sidebar entries */
-  .results-race-btn { padding: 10px 12px !important; font-size: 12px !important; }
-  .rrb-name { font-size: 13px !important; }
-  /* Analysis grid override */
-  .analysis-grid { display: flex !important; flex-direction: column !important; gap: 14px !important; }
-  .span2, .span3 { grid-column: auto !important; }
-
-  /* Driver hero mobile */
-  #drv-hero { height: 175px !important; }
-  #drv-headshot { width: 48% !important; }
-  .drv-hero-inner { width: 60% !important; padding: 14px 14px !important; gap: 10px !important; }
-  #drv-info-pills { right: 4px !important; top: 10px !important; transform: none !important; gap: 5px !important; }
-  .drv-info-pill { padding: 5px 8px !important; min-width: 48px !important; }
-  .drv-info-val { font-size: 15px !important; }
-  .drv-info-lbl { font-size: 7px !important; }
-  .drv-logo-ring { width: 46px !important; height: 46px !important; }
-  .drv-hero-text h1 { font-size: 32px !important; }
-  .drv-hero-team { font-size: 9px !important; }
-  .drv-hero-meta { font-size: 9px !important; }
-  #drv-num-bg { font-size: 140px !important; right: 5px !important; top: -8px !important; }
 }
 </style>
 </head>
@@ -845,19 +767,21 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;heig
   </div>
   <div id="standings-chart-wrap">
     <div class="chart-col">
-      <div class="chart-col-title">Points Gap — Top 6 Drivers</div>
-      <div style="position:relative;flex:1;min-height:70px;">
+      <div class="chart-col-title">📊 Points Gap — Top 6 Drivers</div>
+      <div style="position:relative;flex:1;min-height:160px;">
         <canvas id="pts-gap-chart"></canvas>
       </div>
     </div>
     <div class="chart-col">
-      <div class="chart-col-title">Constructor Points</div>
-      <div style="position:relative;flex:1;min-height:70px;">
+      <div class="chart-col-title">🏎️ Constructor Points</div>
+      <div style="position:relative;flex:1;min-height:160px;">
         <canvas id="constr-chart"></canvas>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ═══ DRIVERS
 
 <!-- ═══ DRIVERS ═══ -->
 <div class="page" id="page-drivers">
