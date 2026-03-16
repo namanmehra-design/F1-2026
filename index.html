@@ -33,6 +33,12 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+.s-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:0.2s;}
+.s-card:hover{box-shadow:var(--shadow);}
+.s-card-accent{border-top:3px solid var(--tc);background:linear-gradient(135deg,rgba(225,6,0,0.04),var(--surface2));}
+.s-card-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.s-card-value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;line-height:1;margin-top:6px;color:var(--text);}
+.s-card-sub{font-size:11px;color:var(--muted);margin-top:4px;}
 ::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.15); border-radius:4px; }
@@ -231,7 +237,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .drv-btn:hover { background:var(--surface2); }
 .drv-btn.active { background:rgba(225,6,0,0.04); border-left-color:var(--tc); }
 .drv-num { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:18px; color:var(--muted); width:30px; text-align:right; flex-shrink:0; }
-.drv-btn.active .drv-num { color:var(--tc); }
+.drv-btn.active .drv-num{color:var(--tc);}
 .drv-nm { font-size:13px; font-weight:700; color:var(--text); }
 .drv-tm { font-size:10px; color:var(--muted); margin-top:1px; }
 
@@ -392,23 +398,25 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   .std-list { padding:8px !important; }
   #standings-chart-wrap { flex-direction:column !important; height:auto !important; padding:14px !important; gap:14px !important; }
   .chart-col { height:180px !important; flex-shrink:0 !important; }
-  #drv-list { display:flex !important; flex-direction:row !important; overflow-x:auto !important; overflow-y:hidden !important; padding:6px 10px !important; gap:6px !important; height:76px !important; align-items:center !important; }
-  .drv-btn { flex-direction:column !important; min-width:60px !important; max-width:60px !important; border-left:none !important; border-bottom:2px solid transparent !important; align-items:center !important; text-align:center !important; padding:5px 3px !important; flex-shrink:0 !important; border-right:none !important; }
-  .drv-btn.active { border-bottom-color:var(--tc) !important; border-left:none !important; background:rgba(225,6,0,0.05) !important; }
+  #drv-list { display:flex !important; flex-direction:row !important; overflow-x:auto !important; overflow-y:hidden !important; padding:8px 10px !important; gap:8px !important; height:88px !important; align-items:center !important; -webkit-overflow-scrolling:touch !important; }
+  .drv-btn { flex-direction:column !important; min-width:64px !important; max-width:64px !important; border-left:none !important; border-bottom:3px solid transparent !important; align-items:center !important; text-align:center !important; padding:6px 4px !important; flex-shrink:0 !important; gap:3px !important; border-radius:8px !important; }
+  .drv-btn.active { border-bottom-color:var(--tc) !important; background:rgba(225,6,0,0.06) !important; }
   .drv-btn > div[style*="width:3px"] { display:none !important; }
-  .drv-nm { font-size:10px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; width:100% !important; }
+  .drv-nm { font-size:10px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; width:100% !important; color:var(--text) !important; }
   .drv-tm { display:none !important; }
-  .drv-num { font-size:14px !important; width:auto !important; }
-  .drv-btn > div[style*="border-radius:6px"] { display:none !important; }
-  #drv-hero { height:185px !important; }
-  #drv-headshot { width:50% !important; }
-  #drv-headshot-fade { width:58% !important; }
-  .drv-hero-inner { width:62% !important; padding:14px 16px !important; gap:10px !important; }
-  .drv-logo-ring { width:48px !important; height:48px !important; }
-  .drv-hero-text h1 { font-size:32px !important; }
-  #drv-info-pills { right:8px !important; top:12px !important; transform:none !important; gap:5px !important; }
-  .drv-info-pill { padding:5px 8px !important; min-width:52px !important; }
-  .drv-info-val { font-size:15px !important; }
+  .drv-num { font-size:16px !important; width:auto !important; color:var(--muted) !important; }
+  .drv-btn.active .drv-num { color:var(--accent) !important; }
+  /* Show logo box in mobile list */
+  .drv-btn > div[style*="border-radius:6px"] { width:22px !important; height:22px !important; margin-left:0 !important; }
+  #drv-hero { height:200px !important; }
+  #drv-headshot { width:52% !important; }
+  #drv-headshot-fade { width:58% !important; background:linear-gradient(to right,#0d1117 0%,rgba(13,17,23,0.7) 28%,transparent 65%) !important; }
+  .drv-hero-inner { width:60% !important; padding:16px !important; gap:10px !important; }
+  .drv-logo-ring { width:50px !important; height:50px !important; }
+  .drv-hero-text h1 { font-size:30px !important; }
+  #drv-info-pills { right:10px !important; top:50% !important; transform:translateY(-50%) !important; gap:6px !important; }
+  .drv-info-pill { padding:5px 10px !important; min-width:56px !important; }
+  .drv-info-val { font-size:16px !important; }
   #drv-tabs { overflow-x:auto !important; }
   .dtab { padding:10px 12px !important; font-size:10px !important; }
   #drv-content { padding:12px !important; }
@@ -1615,26 +1623,29 @@ function renderStandingsCharts() {
 ═══════════════════════════════════════ */
 function renderDriverSidebar(){
   var el=document.getElementById('drv-list');
-  if(!el)return;
-  el.innerHTML=DRV_S.map(function(d){
-    var t=TEAMS_S[d.team], tclr=t?t.color:'#444';
-    var lurl=TEAM_LOGOS[d.team];
-    // Team color bar on right - always reliable
-    var badge='<div style="width:4px;height:28px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-left:auto;opacity:1"></div>';
-    if(lurl) badge='<div style="width:28px;height:28px;border-radius:6px;background:#fff;flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;overflow:hidden;"><img src="'+lurl+'" style="width:85%;height:85%;object-fit:contain" onerror="this.parentElement.style.background=\''+tclr+'\';this.remove()"/></div>';
+  if(!el) return;
+  el.innerHTML = DRV_S.map(function(d){
+    var t = TEAMS_S[d.team], tclr = t ? t.color : '#E10600';
+    var lurl = TEAM_LOGOS[d.team];
+    var logoInner = lurl
+      ? '<img src="'+lurl+'" style="width:80%;height:80%;object-fit:contain" onerror="this.style.display=\'none\'"/>'
+      : '<div style="width:8px;height:20px;border-radius:2px;background:'+tclr+'"></div>';
+    var logoBox = '<div style="width:30px;height:30px;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,0.08);flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;overflow:hidden;">'+logoInner+'</div>';
     return '<div class="drv-btn" id="db-'+d.id+'" data-id="'+d.id+'">' +
-      '<div style="width:3px;height:36px;border-radius:2px;background:'+tclr+';flex-shrink:0;margin-right:2px"></div>' +
-      '<div class="drv-num" style="color:rgba(255,255,255,.15)">'+d.num+'</div>' +
-      '<div style="flex:1;min-width:0"><div class="drv-nm">'+d.name.split(' ').pop()+'</div>' +
-      '<div class="drv-tm">'+(t?t.name:'')+'</div></div>' +
-      badge+'</div>';
+      '<div style="width:3px;height:36px;border-radius:2px;background:'+tclr+';flex-shrink:0;"></div>' +
+      '<div class="drv-num">'+d.num+'</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="drv-nm">'+d.name.split(' ').pop()+'</div>' +
+        '<div class="drv-tm">'+(t?t.name:'')+'</div>' +
+      '</div>' +
+      logoBox +
+    '</div>';
   }).join('');
-  el.onclick=function(e){
-    var btn=e.target.closest('.drv-btn');
-    if(btn&&btn.dataset.id)loadDriver(btn.dataset.id);
+  el.onclick = function(e){
+    var btn = e.target.closest('.drv-btn');
+    if(btn && btn.dataset.id) loadDriver(btn.dataset.id);
   };
 }
-
 function filterDrv(q) {
   q = q.toLowerCase();
   DRV_S.forEach(function(d) {
