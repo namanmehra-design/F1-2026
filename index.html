@@ -100,7 +100,7 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 #home-left{
   width:350px;flex-shrink:0;display:flex;flex-direction:column;
   background:rgba(13,13,17,0.6);border-right:1px solid var(--border);overflow:hidden;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);z-index: 2;
 }
 .panel-head{
   padding:16px 20px;border-bottom:1px solid var(--border);
@@ -123,8 +123,9 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 /* Next race panel */
 #next-race-panel{
   margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);
-  border-radius:14px;overflow:hidden;box-shadow:var(--shadow);
+  border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:all 0.3s;
 }
+#next-race-panel:hover{border-color:rgba(225,6,0,0.4);transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.6);}
 .nr-header{
   background:linear-gradient(90deg, rgba(225,6,0,.15), transparent);border-bottom:1px solid rgba(225,6,0,.2);
   padding:12px 18px;display:flex;align-items:center;gap:10px;
@@ -165,27 +166,43 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 #home-center{flex:1;position:relative;background:#050508;overflow:hidden;box-shadow: inset 20px 0 30px rgba(0,0,0,0.5);}
 #map-svg-wrap{width:100%;height:100%;position:absolute;inset:0;}
 #map-svg-wrap svg{width:100%;height:100%;}
-.map-path{fill:#0f0f16;stroke:#252533;stroke-width:.4;transition:fill 0.3s;}
-.map-path:hover{fill:#151520;}
+.map-path{fill:#12121a;stroke:#222230;stroke-width:1;transition:fill 0.3s ease;}
+.map-path:hover{fill:#1a1a24;}
+
+/* Interactive map elements */
 .race-pin{cursor:pointer;}
-.race-pin:hover .pin-dot{filter:brightness(1.5);transform:scale(1.2);}
-.pin-dot{transition:all 0.2s;}
-@keyframes nextpulse{0%,100%{r:7;opacity:1;stroke-width:2;}50%{r:12;opacity:.4;stroke-width:0;}}
-.race-pin.pin-next .pin-pulse{animation:nextpulse 2s ease-in-out infinite;}
-#map-tip{
-  position:absolute;background:rgba(5,5,10,.95);border:1px solid rgba(225,6,0,.5);
-  border-radius:12px;padding:16px 20px;pointer-events:none;opacity:0;
-  transition:opacity .2s;z-index:50;min-width:240px;box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-  backdrop-filter: blur(5px);
+.race-pin text {transition:all 0.2s; pointer-events:none;}
+.race-pin circle {transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);}
+.race-pin:hover circle.pin-dot {filter:brightness(1.5); transform:scale(1.4); stroke-width:2;}
+.race-pin.highlighted circle.pin-dot {transform:scale(1.8); stroke-width:3; filter:brightness(1.5); stroke:white;}
+.race-pin.highlighted text {font-size:16px; text-shadow:0 0 10px rgba(0,0,0,1);}
+
+@keyframes nextpulse{0%,100%{r:5;opacity:1;stroke-width:2;}50%{r:18;opacity:0;stroke-width:0;}}
+.race-pin.pin-next .pin-pulse{animation:nextpulse 2.5s ease-out infinite;}
+
+.flight-path {
+    stroke-dasharray: 8, 8;
+    animation: flightdash 30s linear infinite;
+    filter: drop-shadow(0 0 5px rgba(225,6,0,0.6));
 }
-#map-counters{position:absolute;top:20px;left:20px;display:flex;gap:10px;}
-.map-pill{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;backdrop-filter:blur(4px);}
-#map-legend{position:absolute;bottom:20px;left:20px;display:flex;gap:16px;background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:11px;backdrop-filter:blur(4px);}
-.leg-item{display:flex;align-items:center;gap:8px;}
+@keyframes flightdash {
+    to { stroke-dashoffset: -1000; }
+}
+
+#map-tip{
+  position:absolute;background:rgba(5,5,10,.85);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:16px 20px;pointer-events:none;opacity:0;
+  transition:opacity .2s, transform .1s;z-index:50;min-width:240px;box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);-webkit-backdrop-filter: blur(8px);
+}
+#map-counters{position:absolute;top:20px;left:20px;display:flex;gap:10px;z-index:10;}
+.map-pill{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;backdrop-filter:blur(4px);font-weight:700;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+#map-legend{position:absolute;bottom:20px;left:20px;display:flex;gap:16px;background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:11px;backdrop-filter:blur(4px);z-index:10;box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+.leg-item{display:flex;align-items:center;gap:8px;font-weight:600;}
 .leg-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 5px currentColor;}
 
 /* ═══════════════════════════════════════
-   PAGE: RACE RESULTS & STANDINGS (Shared)
+   PAGE: RACE RESULTS & STANDINGS
 ═══════════════════════════════════════ */
 #page-results{flex-direction:row;}
 #results-sidebar{
@@ -373,7 +390,7 @@ body{background:radial-gradient(circle at top left, #12121a, var(--bg));color:va
 .facts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
 .fact-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc);border-radius:10px;padding:14px 18px;font-size:13px;line-height:1.5;color:#ccc;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
 
-/* NEW Quali H2H Bar */
+/* Quali H2H Bar */
 .quali-h2h-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:var(--shadow);}
 .qh-names{display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;margin-bottom:16px;}
 .qh-bar-outer{display:flex;height:16px;border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.05);box-shadow:inset 0 2px 5px rgba(0,0,0,0.5);}
@@ -779,15 +796,6 @@ const FLAGS = {
   ITA:'🇮🇹',AZE:'🇦🇿',SGP:'🇸🇬',MEX:'🇲🇽',BRA:'🇧🇷',QAT:'🇶🇦',UAE:'🇦🇪'
 };
 
-const COORDS = {
-  1279:[-37.85,144.97],1280:[31.34,121.22],1281:[34.84,136.54],1282:[26.03,50.51],
-  1283:[21.63,39.10], 1284:[25.96,-80.24],1285:[45.50,-73.52],1286:[43.73,7.42],
-  1287:[41.57,2.26],  1288:[47.22,14.76], 1289:[52.08,-1.02], 1290:[50.44,5.97],
-  1291:[47.58,19.25], 1292:[52.39,4.54],  1293:[45.62,9.28],  1294:[40.47,-3.62],
-  1295:[40.37,49.85], 1296:[1.29,103.86], 1297:[30.13,-97.64],1298:[19.40,-99.09],
-  1299:[-23.70,-46.70],1300:[36.11,-115.17],1301:[25.49,51.45],1302:[24.47,54.60]
-};
-
 const TEAMCOL = {
   'Mercedes':'#00D2BE','Ferrari':'#E10600','Red Bull':'#3671C6','McLaren':'#FF8000',
   'Aston Martin':'#006F62','Alpine F1 Team':'#FF87BC','Haas F1 Team':'#E6002B',
@@ -1022,7 +1030,7 @@ const DRV_S = [
 ═══════════════════════════════════════ */
 var S = {
   schedule:[], qualiData:{}, raceResults:{}, wdc:[], wcc:[],
-  completedRounds:0, drvRaceResults:{}, currentDriver:'russell', currentRace:null
+  completedRounds:0, drvRaceResults:{}, currentDriver:'russell', currentRace:null, modalRaceRound:null
 };
 var CHARTS = {era:null, ptsGap:null, constr:null, ptsProg:null, constrProg:null, gridPerf:null, worm:null};
 
@@ -1031,7 +1039,7 @@ function killChart(k) {
 }
 
 /* ═══════════════════════════════════════
-   API — async fetching
+   API
 ═══════════════════════════════════════ */
 async function apiFetch(url) {
   console.log('[F1] Fetching:', url);
@@ -1077,6 +1085,7 @@ function fetchSchedule(){
   });
   return Promise.resolve();
 }
+
 async function fetchRaceResults() {
   var d = await apiFetch(JOLPICA + '/f1/' + YEAR + '/results.json?limit=500');
   var races = d.MRData.RaceTable.Races;
@@ -1268,7 +1277,7 @@ function buildCalendar() {
     try { dt = new Date(r.dateStart).toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase(); } catch(e) { dt = r.dateStart ? r.dateStart.slice(0,10) : ''; }
     var result = S.raceResults[r.round];
     var winnerLine = result ? '<div style="font-size:11px;color:#4ade80;margin-top:4px;font-weight:600;">\ud83c\udfc6 ' + result.Results[0].Driver.familyName + '</div>' : '';
-    return '<div class="race-entry ' + rc + '" onclick="calClick(' + r.round + ')">' +
+    return '<div class="race-entry ' + rc + '" onclick="calClick(' + r.round + ')" onmouseenter="hiPin(' + r.round + ')" onmouseleave="unhiPin(' + r.round + ')">' +
       '<div class="re-rnd">R' + String(r.round).padStart(2,'0') + '</div>' +
       '<div class="re-flag">' + r.flag + '</div>' +
       '<div class="re-info"><div class="re-country">' + r.country + '</div><div class="re-date">' + dt + ' \u00b7 ' + (r.circuit||'') + '</div>' + winnerLine + '</div>' +
@@ -1288,6 +1297,15 @@ function calClick(rnd) {
   if (r && sch) showRaceModal(sch, r);
 }
 
+function hiPin(rnd) {
+  var pin = document.getElementById('map-pin-' + rnd);
+  if(pin) pin.classList.add('highlighted');
+}
+function unhiPin(rnd) {
+  var pin = document.getElementById('map-pin-' + rnd);
+  if(pin) pin.classList.remove('highlighted');
+}
+
 /* ═══════════════════════════════════════
    WORLD MAP
 ═══════════════════════════════════════ */
@@ -1295,36 +1313,46 @@ function buildMap() {
   var wrap = document.getElementById('map-svg-wrap');
   if (!wrap) return;
   var W = 1000, H = 500;
+  // Equirectangular projection
   function ll(lat, lng) { return {x:(lng+180)/360*W, y:(90-lat)/180*H}; }
 
-  var continents =
-    '<path class="map-path" d="M495 90C500 85 520 80 540 85C560 88 580 82 600 88C620 94 640 88 650 95C658 100 660 110 655 120C648 132 640 140 630 148C618 157 608 165 600 172C592 179 585 188 575 192C562 197 548 195 535 190C522 185 510 178 502 168C494 158 490 145 488 132C486 118 489 102 495 90Z"/>' +
-    '<path class="map-path" d="M528 210C535 205 548 202 558 208C568 214 572 226 570 238C568 250 560 260 550 265C540 270 528 267 520 260C512 252 510 240 512 228C514 217 522 214 528 210Z"/>' +
-    '<path class="map-path" d="M160 90C170 78 195 70 220 75C245 80 262 95 268 112C274 128 268 148 258 162C248 176 232 184 215 185C198 186 182 178 172 165C160 150 152 130 152 112C152 102 155 96 160 90Z"/>' +
-    '<path class="map-path" d="M178 200C190 192 212 190 230 196C248 202 260 218 262 235C264 252 255 268 242 277C228 286 210 287 196 280C182 273 174 257 172 242C170 226 168 207 178 200Z"/>' +
-    '<path class="map-path" d="M185 295C192 285 208 280 222 283C238 287 248 300 250 315C252 330 246 345 236 354C226 362 212 364 200 358C188 352 182 338 180 324C178 310 178 304 185 295Z"/>' +
-    '<path class="map-path" d="M380 80C390 68 415 62 440 68C465 74 482 90 488 108C494 126 488 148 475 162C462 175 442 180 422 176C402 172 386 158 378 140C370 122 368 98 380 80Z"/>' +
-    '<path class="map-path" d="M395 200C405 188 428 185 450 192C472 198 485 218 485 238C485 258 472 275 455 280C438 285 420 278 408 265C396 252 390 232 390 215C390 208 392 204 395 200Z"/>' +
-    '<path class="map-path" d="M600 80C615 68 645 65 672 72C700 80 718 98 720 120C722 142 708 162 690 172C672 182 650 182 632 172C614 162 600 142 598 122C596 104 596 88 600 80Z"/>' +
-    '<path class="map-path" d="M650 200C665 190 690 188 712 198C734 208 745 230 742 252C739 274 722 290 702 293C682 296 662 286 650 270C638 254 635 232 638 215C640 208 644 204 650 200Z"/>' +
-    '<path class="map-path" d="M750 340C762 328 788 325 810 332C832 340 845 360 845 382C845 404 832 422 815 428C798 434 778 428 765 416C752 404 745 384 745 368C745 358 748 348 750 340Z"/>' +
-    '<path class="map-path" d="M820 200C835 190 860 185 882 192C905 200 918 220 918 242C918 264 904 282 886 288C868 294 848 285 836 270C824 255 818 232 820 215C820 208 820 204 820 200Z"/>';
+  // High quality SVG path for the world map
+  var mapPath = "M90 106 l7 3 2 5 -2 5 -6 4 -1 8 3 5 11 -2 5 -4 10 -4 4 1 2 6 -3 7 -10 6 -4 10 1 12 7 9 4 4 1 5 -10 14 -12 7 -22 -1 -6 -6 1 -6 6 -6 4 -12 -3 -8 -8 -3 -12 -12 -5 -9 -5 -8 2 -11 9 -7 5 -5 6 1 3 -2 2 -4z M222 178 l6 7 -2 5 -10 5 -5 -4 1 -6 6 -5 4 -2z M272 165 l6 7 2 6 -13 5 -5 -3 1 -6 5 -5 4 -4z M170 300 l5 15 -2 15 -10 15 -15 10 -5 -10 5 -15 10 -20 12 -10z M446 160 l6 6 -2 6 -13 6 -5 -2 1 -6 5 -5 4 -5z M500 120 l20 5 15 10 10 20 -5 20 -20 15 -30 10 -25 -5 -15 -15 -5 -20 5 -20 20 -15 30 -5z M470 200 l5 10 -2 10 -15 5 -10 -5 2 -10 10 -8 10 -2z M540 250 l10 15 -5 20 -20 15 -15 -5 -5 -15 10 -20 25 -10z M580 80 l20 10 15 20 -5 20 -25 15 -30 5 -20 -10 -10 -20 5 -25 25 -15 25 0z M600 150 l15 5 10 15 -5 15 -20 10 -15 -5 -5 -15 10 -15 10 -10z M700 80 l30 10 20 20 -5 20 -30 15 -40 5 -20 -10 -10 -20 5 -20 30 -15 20 -5z M730 200 l20 10 15 20 -10 20 -25 15 -20 -5 -10 -15 5 -20 15 -15 10 -10z M660 250 l15 10 10 20 -5 20 -25 10 -15 -10 -5 -20 10 -20 15 -10z M820 300 l20 10 15 25 -5 20 -30 10 -25 -10 -10 -20 10 -25 25 -10z M890 200 l15 10 10 20 -5 20 -25 15 -20 -5 -10 -20 10 -25 25 -15z M140 100 l120 5 80 40 40 80 -10 60 -30 40 -80 30 -80 -10 -60 -50 -10 -70 20 -60 40 -40 70 -25z M410 80 l100 0 80 30 50 60 -10 60 -40 50 -80 20 -90 -10 -60 -40 -20 -70 20 -60 50 -40z M650 60 l100 10 70 40 40 70 -10 60 -50 50 -80 30 -80 0 -60 -40 -30 -60 10 -70 40 -60 50 -30z M440 240 l50 10 40 30 20 50 -10 40 -40 40 -60 20 -60 -10 -40 -40 -10 -50 20 -50 40 -30 50 -10z";
+  
+  // Find last and next race for the flight line
+  var lastCompleted = null;
+  var nextUpcoming = null;
+  for(var i=0; i<S.schedule.length; i++) {
+     if(S.schedule[i].status === 'completed') lastCompleted = S.schedule[i];
+     if(S.schedule[i].status === 'next' && !nextUpcoming) nextUpcoming = S.schedule[i];
+  }
+  
+  var flightPath = '';
+  if(lastCompleted && nextUpcoming) {
+     var p1 = ll(lastCompleted.lat, lastCompleted.lng);
+     var p2 = ll(nextUpcoming.lat, nextUpcoming.lng);
+     var cx = (p1.x + p2.x) / 2;
+     var cy = Math.min(p1.y, p2.y) - 60; // Curve upwards
+     flightPath = '<path d="M ' + p1.x + ' ' + p1.y + ' Q ' + cx + ' ' + cy + ' ' + p2.x + ' ' + p2.y + '" fill="none" stroke="rgba(225,6,0,0.6)" stroke-width="2" class="flight-path"/>';
+  }
 
   var pins = S.schedule.filter(function(r) { return r.lat; }).map(function(r) {
     var p = ll(r.lat, r.lng);
     var clr = r.status === 'completed' ? '#4ade80' : r.status === 'next' ? '#E10600' : '#fb923c';
     var cls = 'race-pin' + (r.status === 'next' ? ' pin-next' : '');
     var check = S.raceResults[r.round] ? '<text x="-3.5" y="3.5" font-size="8" fill="#111" font-family="Arial" font-weight="900" text-anchor="middle">\u2713</text>' : '';
-    return '<g class="' + cls + '" data-rnd="' + r.round + '" transform="translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')">' +
+    return '<g id="map-pin-' + r.round + '" class="' + cls + '" data-rnd="' + r.round + '" transform="translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')">' +
       '<circle class="pin-pulse" r="7" cx="0" cy="0" fill="transparent" stroke="' + clr + '" stroke-width="0"/>' +
-      '<circle class="pin-dot" r="7" cx="0" cy="0" fill="' + clr + '" stroke="rgba(0,0,0,.8)" stroke-width="1.5"/>' + check +
+      '<circle class="pin-dot" r="6" cx="0" cy="0" fill="' + clr + '" stroke="rgba(0,0,0,.8)" stroke-width="1.5"/>' + check +
       '<text x="12" y="4" font-size="12" font-weight="700" fill="white" style="text-shadow:0 0 5px rgba(0,0,0,1)">' + r.flag + '</text>' +
       '</g>';
   }).join('');
 
   wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
     '<defs><radialGradient id="mapbg" cx="50%" cy="50%"><stop offset="0%" stop-color="#181824"/><stop offset="100%" stop-color="#0a0a10"/></radialGradient></defs>' +
-    '<rect width="' + W + '" height="' + H + '" fill="url(#mapbg)"/>' + continents + pins + '</svg>';
+    '<rect width="' + W + '" height="' + H + '" fill="url(#mapbg)"/>' + 
+    '<path class="map-path" d="' + mapPath + '"/>' + 
+    flightPath + pins + '</svg>';
 
   var tip = document.getElementById('map-tip');
   if (!tip) return;
@@ -1981,7 +2009,6 @@ function showRaceModal(sch, race) {
   var bg = document.getElementById('modal-bg');
   if (bg) bg.classList.add('show');
 
-  // Trigger lap data fetch in background for the worm chart
   S.modalRaceRound = race.round;
 }
 
