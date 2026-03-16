@@ -964,9 +964,19 @@ function killChart(k) {
    API — fixed: async, try/catch everywhere, no .json() double-parse
 ═══════════════════════════════════════ */
 async function apiFetch(url) {
-  var res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
-  return res.json();
+  // AbortController gives us a 10-second timeout
+  var controller = new AbortController();
+  var timer = setTimeout(function() { controller.abort(); }, 10000);
+  try {
+    var res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  } catch(err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('Timeout fetching: ' + url);
+    throw err;
+  }
 }
 
 async function boot() {
@@ -976,16 +986,17 @@ async function boot() {
 
   try {
     // Run all fetches in parallel — any failure is caught below
+    // fetchSchedule must complete first — fetchRaceResults needs S.schedule populated
+    await fetchSchedule();
     await Promise.all([
-      fetchSchedule(),
       fetchRaceResults(),
       fetchQuali(),
       fetchStandings()
     ]);
     setStatus('ok', 'Live \u00b7 ' + new Date().toLocaleTimeString());
   } catch(err) {
-    console.error('API fetch error:', err);
-    setStatus('err', 'API error \u00b7 check console');
+    console.error('API fetch error:', err.message || err);
+    setStatus('err', err.message || 'API error');
   }
 
   if (btn) { btn.textContent = '\u21b3 Refresh'; btn.disabled = false; }
