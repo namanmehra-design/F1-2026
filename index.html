@@ -241,26 +241,31 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 .drv-nm { font-size:13px; font-weight:700; color:var(--text); }
 .drv-tm { font-size:10px; color:var(--muted); margin-top:1px; }
 
-/* DRIVER HERO */
-#drv-hero { position:relative; height:200px; flex-shrink:0; overflow:hidden; background:linear-gradient(135deg,#f8f9fa 0%,#e8ecf2 100%); border-bottom:1px solid var(--border); }
+/* DRIVER HERO - CENTERED LAYOUT */
+#drv-hero { position:relative; min-height:280px; flex-shrink:0; overflow:hidden; background:linear-gradient(135deg,#f8f9fa 0%,#e8ecf2 100%); border-bottom:1px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 20px; }
 
-#drv-headshot-fade{position:absolute;right:0;top:0;bottom:0;width:54%;z-index:2;pointer-events:none;background:linear-gradient(to right,#f0f2f5 0%,rgba(240,242,245,0.7) 30%,transparent 70%);}
-#drv-hero-glow { position:absolute; inset:0; opacity:0.08; pointer-events:none; transition:all 0.5s; }
-#drv-num-bg { position:absolute; right:10px; top:-15px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:160px; color:rgba(0,0,0,0.04); line-height:1; pointer-events:none; user-select:none; }
-#drv-headshot { position:absolute; right:0; top:0; bottom:0; width:48%; z-index:1; background-size:contain; background-position:bottom right; background-repeat:no-repeat; transition:background-image 0.3s ease; }
-#drv-headshot-fade { position:absolute; right:0; top:0; bottom:0; width:54%; z-index:2; pointer-events:none; background:linear-gradient(to right,#0D0D0F 0%,rgba(13,13,15,0.7) 30%,transparent 70%); }
-.drv-hero-inner { position:relative; z-index:3; display:flex; align-items:center; height:100%; padding:20px 24px; gap:16px; width:60%; }
-.drv-logo-ring { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.3); background:#fff; flex-shrink:0; overflow:hidden; transition:border-color 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
-.drv-hero-text h1 { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:48px; line-height:1; letter-spacing:-1px; text-transform:uppercase; color:var(--text); }
-.drv-hero-team { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--tc); margin-bottom:4px; }
-.drv-hero-meta { font-size:10px; color:var(--muted); margin-top:3px; }
-.drv-hero-standing { display:inline-flex; align-items:center; gap:6px; margin-top:6px; background:rgba(0,0,0,0.07); border:1px solid rgba(0,0,0,0.12); border-radius:20px; padding:3px 10px; font-size:10px; font-family:'Share Tech Mono',monospace; color:var(--text); }
-.drv-hero-standing .live-tag { color:#16a34a; font-size:8px; letter-spacing:1px; font-weight:900; }
-#drv-info-pills { position:absolute; right:16px; top:50%; transform:translateY(-50%); z-index:4; display:flex; flex-direction:column; gap:8px; }
-.drv-info-pill { background:rgba(0,0,0,0.07); border:1px solid rgba(0,0,0,0.12); border-radius:8px; padding:6px 14px; text-align:center; min-width:64px; }
-.drv-info-val { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; color:var(--text); line-height:1; }
-.drv-info-lbl { font-size:8px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
-.drv-hero-info { display:none; }
+#drv-hero-glow { position:absolute; inset:0; opacity:0.1; pointer-events:none; transition:all 0.5s; z-index:0; }
+#drv-num-bg { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:220px; color:rgba(0,0,0,0.03); line-height:1; pointer-events:none; user-select:none; z-index:1; }
+
+.drv-hero-inner { position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; width:100%; }
+
+#drv-headshot { width:180px; height:180px; z-index:2; background-size:contain; background-position:center bottom; background-repeat:no-repeat; transition:background-image 0.3s ease; }
+
+.drv-hero-text { display:flex; flex-direction:column; align-items:center; text-align:center; z-index:4; background:rgba(255,255,255,0.7); backdrop-filter:blur(10px); padding:20px 40px; border-radius:16px; border:1px solid rgba(255,255,255,0.8); box-shadow:0 8px 32px rgba(0,0,0,0.06); margin-top:-20px; width:90%; max-width:500px; }
+
+.drv-logo-ring { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid #fff; background:#fff; flex-shrink:0; overflow:hidden; transition:border-color 0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-top:-48px; margin-bottom:12px; z-index:5; }
+
+.drv-hero-text h1 { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-style:italic; font-size:42px; line-height:1; letter-spacing:-1px; text-transform:uppercase; color:var(--text); }
+.drv-hero-team { font-size:10px; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:var(--tc); margin-bottom:4px; }
+.drv-hero-meta { font-size:11px; color:var(--muted); margin-top:4px; font-weight:600;}
+.drv-hero-standing { display:inline-flex; align-items:center; gap:8px; margin-top:12px; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:4px 14px; font-size:11px; font-family:'Share Tech Mono',monospace; color:var(--text); font-weight:700;}
+.drv-hero-standing .live-tag { color:#16a34a; font-size:9px; letter-spacing:1px; font-weight:900; background:rgba(22,163,74,0.1); padding:2px 6px; border-radius:4px;}
+
+#drv-info-pills { position:absolute; right:20px; top:20px; z-index:5; display:flex; flex-direction:column; gap:8px; }
+.drv-info-pill { background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); border:1px solid var(--border); border-radius:8px; padding:8px 16px; text-align:center; min-width:70px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+.drv-info-val { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; color:var(--text); line-height:1; }
+.drv-info-lbl { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:3px; font-weight:700;}
+
 #drv-tabs { display:flex; padding:0 16px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
 .dtab { padding:14px 20px; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--muted); border-bottom:3px solid transparent; transition:0.2s; white-space:nowrap; }
 .dtab.active { color:var(--accent); border-bottom-color:var(--accent); }
@@ -408,15 +413,18 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   .drv-btn.active .drv-num { color:var(--accent) !important; }
   /* Show logo box in mobile list */
   .drv-btn > div[style*="border-radius:6px"] { width:22px !important; height:22px !important; margin-left:0 !important; }
-  #drv-hero { position:relative; height:200px; flex-shrink:0; overflow:hidden; background:linear-gradient(135deg,#f8f9fa 0%,#e8ecf2 100%); border-bottom:1px solid var(--border); }
-  #drv-headshot { width:52% !important; }
-  #drv-headshot-fade { width:58% !important; background:linear-gradient(to right,#f0f2f5 0%,rgba(240,242,245,0.65) 28%,transparent 65%) !important; }
-  .drv-hero-inner { width:60% !important; padding:16px !important; gap:10px !important; }
-  .drv-logo-ring { width:50px !important; height:50px !important; }
-  .drv-hero-text h1 { font-size:30px !important; }
-  #drv-info-pills { right:10px !important; top:50% !important; transform:translateY(-50%) !important; gap:6px !important; }
+  
+  /* Center Layout Mobile Adjustments */
+  #drv-hero { min-height:240px !important; padding: 20px 10px !important; }
+  #drv-headshot { width:140px !important; height:140px !important; }
+  .drv-hero-inner { width:100% !important; margin-top:30px !important;}
+  .drv-hero-text { padding:16px 20px !important; width:95% !important; margin-top:-16px !important; }
+  .drv-logo-ring { width:46px !important; height:46px !important; margin-top:-40px !important; }
+  .drv-hero-text h1 { font-size:28px !important; }
+  #drv-info-pills { right:10px !important; top:10px !important; flex-direction:row !important; gap:8px !important; }
   .drv-info-pill { padding:5px 10px !important; min-width:56px !important; }
   .drv-info-val { font-size:16px !important; }
+  
   #drv-tabs { overflow-x:auto !important; }
   .dtab { padding:10px 12px !important; font-size:10px !important; }
   #drv-content { padding:12px !important; }
@@ -432,7 +440,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 <body>
 
 
-<!-- Local file CORS warning banner -->
 <div id="local-file-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a0a00;border-bottom:2px solid #f59e0b;padding:10px 20px;align-items:center;gap:14px;font-size:13px;">
   <span style="font-size:18px;">⚠️</span>
   <div style="flex:1;">
@@ -442,7 +449,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   <code style="background:#000;border:1px solid #333;padding:6px 14px;border-radius:6px;color:#22c55e;font-size:12px;white-space:nowrap;">cd ~/Downloads && python3 -m http.server 8000</code>
   <button onclick="document.getElementById('local-file-banner').style.display='none'" style="background:none;border:1px solid #444;color:#aaa;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">✕ Dismiss</button>
 </div>
-<!-- ═══ TOP BAR ═══ -->
 <div id="topbar">
   <div class="logo">
     <span class="logo-g">GRID</span><span class="logo-r">2026</span>
@@ -472,9 +478,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
 
 <div id="app">
 
-<!-- ═══ HOME ═══ -->
 <div class="page active" id="page-home">
-  <!-- Left: season panel -->
   <div id="home-left">
     <div class="panel-head">
       <span class="panel-title">2026 Season</span>
@@ -503,7 +507,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
     </div>
     <div id="race-scroll"></div>
   </div>
-  <!-- Center: map -->
   <div id="home-center">
     <div id="map-counters">
       <div class="map-pill" id="mp-done" style="color:#22c55e;">0 Done</div>
@@ -520,7 +523,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
-<!-- ═══ RESULTS ═══ -->
 <div class="page" id="page-results">
   <div id="results-sidebar">
     <div class="panel-head"><span class="panel-title">Races</span></div>
@@ -543,7 +545,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
-<!-- ═══ STANDINGS ═══ -->
 <div class="page" id="page-standings">
   <div class="standings-top">
     <h1>2026 World Championship</h1>
@@ -581,9 +582,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
-<!-- ═══ DRIVERS
-
-<!-- ═══ DRIVERS ═══ -->
 <div class="page" id="page-drivers">
   <div id="drivers-sidebar">
     <div id="drv-search-wrap"><input id="drv-search" type="text" placeholder="Search…" oninput="filterDrv(this.value)"></div>
@@ -591,21 +589,22 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
   <div id="drivers-main">
     <div id="drv-hero">
-      <!-- Background glow (team color) -->
       <div id="drv-hero-glow"></div>
-      <!-- Big number background -->
       <div id="drv-num-bg">—</div>
-      <!-- Driver headshot - absolute right side (no mask-image - Safari bug) -->
-      <div id="drv-headshot"></div>
-      <!-- Gradient overlay fades headshot (replaces mask-image) -->
-      <div id="drv-headshot-fade"></div>
-      <!-- Main content row - left side -->
+      
+      <div id="drv-info-pills">
+        <div class="drv-info-pill"><div class="drv-info-val" id="drv-age">—</div><div class="drv-info-lbl">Age</div></div>
+        <div class="drv-info-pill"><div class="drv-info-val" id="drv-2026pts">—</div><div class="drv-info-lbl">2026 pts</div></div>
+      </div>
+
       <div class="drv-hero-inner">
-        <div class="drv-logo-ring" id="drv-logo-ring">
-          <img id="drv-logo-img" alt="" style="width:72%;height:72%;object-fit:contain;display:none"/>
-          <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:85%;height:85%;"></svg>
-        </div>
+        <div id="drv-headshot"></div>
+        
         <div class="drv-hero-text">
+          <div class="drv-logo-ring" id="drv-logo-ring">
+            <img id="drv-logo-img" alt="" style="width:72%;height:72%;object-fit:contain;display:none"/>
+            <svg id="drv-logo-svg" viewBox="0 0 60 60" style="width:85%;height:85%;"></svg>
+          </div>
           <div class="drv-hero-team" id="drv-hero-team">—</div>
           <h1 id="drv-hero-name">—</h1>
           <div class="drv-hero-meta" id="drv-hero-meta">—</div>
@@ -615,12 +614,8 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
           </div>
         </div>
       </div>
-      <!-- Age + pts - absolute, top-right of the left content area -->
-      <div id="drv-info-pills">
-        <div class="drv-info-pill"><div class="drv-info-val" id="drv-age">—</div><div class="drv-info-lbl">Age</div></div>
-        <div class="drv-info-pill"><div class="drv-info-val" id="drv-2026pts">—</div><div class="drv-info-lbl">2026 pts</div></div>
-      </div>
     </div>
+    
     <nav id="drv-tabs">
       <button class="dtab active" onclick="switchDtab(this,'overview')">Overview</button>
       <button class="dtab" onclick="switchDtab(this,'results26')">2026 Season</button>
@@ -660,14 +655,12 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
-<!-- ═══ ANALYSIS ═══ -->
 <div class="page" id="page-analysis">
   <div class="panel-head" style="flex-shrink:0;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);">
     <span class="panel-title" style="font-size:16px;">Season Analysis · 2026</span>
     <span class="mono" style="font-size:11px;color:var(--muted);" id="analysis-after">After R0</span>
   </div>
   <div id="analysis-inner">
-    <!-- Row 1 -->
     <div class="analysis-grid">
       <div class="analysis-card span2">
         <div class="ac-title">📈 Points Progression (Top 8)</div>
@@ -678,7 +671,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         <div id="pos-gain-list"></div>
       </div>
     </div>
-    <!-- Row 2 -->
     <div class="analysis-grid">
       <div class="analysis-card">
         <div class="ac-title">⚡ Constructor Battle</div>
@@ -693,7 +685,6 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
         <div id="outcome-matrix"></div>
       </div>
     </div>
-    <!-- Row 3 -->
     <div class="analysis-grid">
       <div class="analysis-card span3">
         <div class="ac-title">🔑 Race-by-Race Driver Status</div>
@@ -704,10 +695,7 @@ body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif;
   </div>
 </div>
 
-</div><!-- #app -->
-
-<!-- Modal -->
-<div id="modal-bg" onclick="if(event.target===this)closeModal()">
+</div><div id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div id="modal-box">
     <div id="modal-hd"><div id="modal-title-txt">Results</div><button id="modal-close" onclick="closeModal()">✕</button></div>
     <div id="modal-bd"></div>
@@ -775,7 +763,19 @@ var CALENDAR = [
 
 // Team logo URLs
 var _TL='https://media.formula1.com/content/dam/fom-website/teams/2024/';
-var TEAM_LOGOS={mclaren:_TL+'mclaren-logo.png.transform/2col/image.png',ferrari:_TL+'ferrari-logo.png.transform/2col/image.png',redbull:_TL+'red-bull-racing-logo.png.transform/2col/image.png',mercedes:_TL+'mercedes-logo.png.transform/2col/image.png',aston:_TL+'aston-martin-logo.png.transform/2col/image.png',alpine:_TL+'alpine-logo.png.transform/2col/image.png',haas:_TL+'haas-logo.png.transform/2col/image.png',rb:_TL+'rb-logo.png.transform/2col/image.png',williams:_TL+'williams-logo.png.transform/2col/image.png',audi:null,cadillac:null};
+var TEAM_LOGOS={
+  mclaren:_TL+'mclaren-logo.png.transform/2col/image.png',
+  ferrari:_TL+'ferrari-logo.png.transform/2col/image.png',
+  redbull:_TL+'red-bull-racing-logo.png.transform/2col/image.png',
+  mercedes:_TL+'mercedes-logo.png.transform/2col/image.png',
+  aston:_TL+'aston-martin-logo.png.transform/2col/image.png',
+  alpine:_TL+'alpine-logo.png.transform/2col/image.png',
+  haas:_TL+'haas-logo.png.transform/2col/image.png',
+  rb:_TL+'rb-logo.png.transform/2col/image.png',
+  williams:_TL+'williams-logo.png.transform/2col/image.png',
+  audi:'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg',
+  cadillac:'https://upload.wikimedia.org/wikipedia/commons/f/f3/Cadillac_Logo_2021.svg'
+};
 
 const NUM_ID = {
   1:'norris',3:'verstappen',5:'bortoleto',6:'hadjar',10:'gasly',11:'perez',
