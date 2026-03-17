@@ -119,10 +119,10 @@ body {
 .panel-title { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text2); }
 
 /* Force exact flex containment for scrolling zones */
-#home-left, #home-center, #results-sidebar, #results-main, #drivers-sidebar, #drivers-main, #page-analysis {
+#home-left, #home-center, #results-sidebar, #results-main, #drivers-sidebar, #drivers-main {
   height: 100%; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
 }
-#race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #analysis-inner, #page-standings {
+#race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #page-standings {
   flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg);
 }
 
@@ -175,10 +175,8 @@ body.dark #home-center { background: #0D0D12; }
    RESULTS
 ═══════════════════════════════════════ */
 #page-results { flex-direction:row; }
-#results-sidebar { width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); }
-#results-main { flex:1; background:var(--bg); }
+#results-sidebar { background:var(--surface); }
 #results-race-list { padding: 0; }
-
 .results-race-btn { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--border); transition:0.15s; border-left:3px solid transparent; }
 .results-race-btn:hover { background:var(--surface2); }
 .results-race-btn.active { background:rgba(225,6,0,0.05); border-left-color:var(--accent); }
@@ -192,7 +190,7 @@ body.dark #home-center { background: #0D0D12; }
 .rh-badges { display:flex; gap:10px; }
 .rh-badge { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 18px; text-align:center; box-shadow:var(--shadow-sm); }
 .rh-badge-val { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; color:var(--text); }
-.rh-badge-lbl { font-size:9px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:3px; font-weight:700;}
+.rh-badge-lbl { font-size:9px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:4px; font-weight:700; }
 
 #results-tabs { display:flex; padding:0 16px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
 .rtab { padding:14px 20px; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--muted); border-bottom:3px solid transparent; transition:0.2s; }
@@ -202,7 +200,7 @@ body.dark #home-center { background: #0D0D12; }
 .data-table th { padding:12px 16px; text-align:left; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); }
 .data-table td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; font-weight:500; color:var(--text); }
 .data-table tr:last-child td { border-bottom:none; }
-.data-table tr:hover td { background:var(--surface2); }
+.data-table tr:hover td { background:rgba(225,6,0,0.02); }
 .cell-pos { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; }
 .pos-1 { color:#E10600; }
 .pos-2 { color:#888; }
@@ -210,12 +208,12 @@ body.dark #home-center { background: #0D0D12; }
 .cell-drv { font-weight:700; }
 .team-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:middle; }
 .cell-pts { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:20px; text-align:right; }
-.fl-badge { background:rgba(139,92,246,0.15); color:#a855f7; border:1px solid rgba(139,92,246,0.3); border-radius:5px; padding:2px 7px; font-size:9px; font-weight:900; letter-spacing:1px; margin-right:6px; }
-.q-best { color:#22c55e !important; font-weight:900; }
-.status-finished { color:#22c55e; font-size:12px; }
+.fl-badge { background:rgba(139,92,246,0.1); color:#7c3aed; border:1px solid rgba(139,92,246,0.3); border-radius:5px; padding:2px 7px; font-size:9px; font-weight:900; letter-spacing:1px; margin-right:6px; }
+.q-best { color:#16a34a !important; font-weight:900; }
+.status-finished { color:#16a34a; font-size:12px; }
 .status-lapped { color:var(--muted); font-size:12px; }
 .status-retired { color:var(--accent); font-size:12px; }
-.grid-arrow-up { color:#22c55e; font-weight:700; }
+.grid-arrow-up { color:#16a34a; font-weight:700; }
 .grid-arrow-dn { color:var(--accent); font-weight:700; }
 .grid-same { color:var(--muted); }
 
@@ -225,11 +223,11 @@ body.dark #home-center { background: #0D0D12; }
 .standings-top { padding:20px 28px 16px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .standings-top h1 { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--text); }
 .standings-after { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:11px; font-family:'Share Tech Mono',monospace; color:var(--muted); }
-#standings-inner { display:grid; grid-template-columns:1fr 1fr; background:var(--bg); gap:0; flex:1; min-height:0; }
-.std-panel { display:flex; flex-direction:column; background:var(--bg); min-height:0; }
+#standings-inner { display:grid; grid-template-columns:1fr 1fr; background:var(--bg); gap:0; flex: 1; min-height: 0; }
+.std-panel { display:flex; flex-direction:column; background:var(--bg); min-height: 0; }
 .std-panel-head { padding:14px 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; position:sticky; top:0; z-index:5; flex-shrink: 0;}
 .std-panel-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:2px; color:var(--text2); }
-#wdc-list, #wcc-list { flex:1; overflow-y:auto; min-height:0; padding:12px; }
+#wdc-list, #wcc-list { flex: 1; overflow-y: auto; min-height: 0; padding: 12px; }
 .leg-dot { width:8px; height:8px; border-radius:50%; }
 .std-row {
   display:flex; align-items:center; justify-content:space-between;
@@ -263,13 +261,11 @@ body.dark #home-center { background: #0D0D12; }
    DRIVERS
 ═══════════════════════════════════════ */
 #page-drivers { flex-direction:row; }
-#drivers-sidebar { width:300px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); }
-#drivers-main { flex:1; background:var(--bg); }
-#drv-list { padding: 0; }
-
+#drivers-sidebar { background:var(--surface); display:flex; flex-direction:column; overflow:hidden; }
 #drv-search-wrap { padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
 #drv-search { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; outline:none; transition:0.2s; }
 #drv-search:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(225,6,0,0.1); }
+#drv-list { padding: 0; }
 
 .drv-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; border-left:3px solid transparent; transition:0.15s; border-bottom:1px solid var(--border); background:transparent; }
 .drv-btn:hover { background:var(--surface2); }
@@ -430,37 +426,6 @@ body.dark #home-center { background: #0D0D12; }
 .rec-txt { font-size:13px; color:var(--text2); }
 
 /* ═══════════════════════════════════════
-   ANALYSIS
-═══════════════════════════════════════ */
-.analysis-header { padding:20px 28px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
-.analysis-header h2 { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--text); }
-
-.analysis-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
-.analysis-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm); }
-.span2 { grid-column:span 2; }
-.span3 { grid-column:span 3; }
-.ac-title { font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
-.ac-canvas-h { height:220px; position:relative; }
-.gl-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.gl-name { font-size:12px; font-weight:700; color:var(--text); width:90px; flex-shrink:0; }
-.gl-bar-wrap { flex:1; height:8px; background:var(--surface3); border-radius:4px; overflow:hidden; }
-.gl-bar { height:100%; border-radius:4px; transition:width 0.6s ease; }
-.gl-val { font-size:12px; font-weight:900; width:36px; text-align:right; font-family:'Share Tech Mono',monospace; color:var(--text); }
-.wl-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.wl-name { font-size:11px; font-weight:700; width:80px; flex-shrink:0; color:var(--text2); }
-.wl-dots { display:flex; gap:3px; }
-.wl-dot { width:14px; height:14px; border-radius:3px; background:var(--surface3); }
-.wl-dot.dnf { background:rgba(225,6,0,0.2); }
-.wl-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
-.wl-leg-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
-.wl-leg-dot { width:12px; height:12px; border-radius:3px; }
-.cb-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.cb-team { font-size:12px; font-weight:700; width:100px; flex-shrink:0; }
-.cb-bar-wrap { flex:1; height:10px; background:var(--surface3); border-radius:5px; overflow:hidden; }
-.cb-bar { height:100%; border-radius:5px; }
-.cb-pts { font-size:12px; font-weight:900; font-family:'Share Tech Mono',monospace; width:40px; text-align:right; }
-
-/* ═══════════════════════════════════════
    MODAL
 ═══════════════════════════════════════ */
 #modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); z-index:9999; display:none; align-items:center; justify-content:center; }
@@ -479,7 +444,6 @@ body.dark #home-center { background: #0D0D12; }
 .spin { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to{transform:rotate(360deg)} }
 .mono { font-family:'Share Tech Mono',monospace; }
-
 
 /* ═══════════════════════════════════════
    MOBILE MEDIA QUERY
@@ -509,7 +473,7 @@ body.dark #home-center { background: #0D0D12; }
   
   #season-cards { grid-template-columns:1fr 1fr !important; padding:10px !important; gap:8px !important; }
   #home-center { height:300px !important; min-height:300px !important; width:100% !important; flex-shrink:0 !important; }
-  #race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #analysis-inner, #page-standings { overflow:visible !important; flex: none !important; }
+  #race-scroll, #results-race-list, #results-content, #drv-list, #drv-content, #page-standings { overflow:visible !important; flex: none !important; }
   
   #results-header { padding:14px 16px !important; flex-direction:column !important; gap:8px !important; align-items:flex-start !important; }
   .rh-title { font-size:22px !important; }
@@ -541,7 +505,6 @@ body.dark #home-center { background: #0D0D12; }
   .stats4 { grid-template-columns:1fr 1fr !important; gap:8px !important; }
   .r26-grid { grid-template-columns:1fr 1fr !important; gap:8px !important; }
   .facts-grid { grid-template-columns:1fr 1fr !important; gap:8px !important; }
-  .analysis-grid { display:flex !important; flex-direction:column !important; gap:12px !important; }
   .ac-canvas-h { height:200px !important; }
   #modal-box { width:96% !important; max-height:88vh !important; }
 }
@@ -569,7 +532,6 @@ body.dark #home-center { background: #0D0D12; }
     <button class="nav-item" onclick="goto('results')"><span class="nav-icon">🏁</span>Race Results</button>
     <button class="nav-item" onclick="goto('standings')"><span class="nav-icon">🏆</span>Standings</button>
     <button class="nav-item" onclick="goto('drivers')"><span class="nav-icon">👤</span>Drivers</button>
-    <button class="nav-item" onclick="goto('analysis')"><span class="nav-icon">📊</span>Analysis</button>
   </nav>
   <div id="topbar-right">
     <button id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
@@ -584,7 +546,6 @@ body.dark #home-center { background: #0D0D12; }
   <button class="mob-nav-btn" onclick="goto('results')"><span class="mob-nav-icon">🏁</span><span>Results</span></button>
   <button class="mob-nav-btn" onclick="goto('standings')"><span class="mob-nav-icon">🏆</span><span>Standings</span></button>
   <button class="mob-nav-btn" onclick="goto('drivers')"><span class="mob-nav-icon">👤</span><span>Drivers</span></button>
-  <button class="mob-nav-btn" onclick="goto('analysis')"><span class="mob-nav-icon">📊</span><span>Analysis</span></button>
 </nav>
 
 <div id="app">
@@ -768,46 +729,6 @@ body.dark #home-center { background: #0D0D12; }
   </div>
 </div>
 
-<div class="page" id="page-analysis">
-  <div class="analysis-header">
-    <h2>Season Analysis · 2026</h2>
-    <span class="mono" style="font-size:11px;color:var(--muted);" id="analysis-after">After R0</span>
-  </div>
-  <div id="analysis-inner">
-    <div class="analysis-grid">
-      <div class="analysis-card span2">
-        <div class="ac-title">📈 Points Progression (Top 8)</div>
-        <div style="height:220px;position:relative;"><canvas id="pts-prog-canvas"></canvas></div>
-      </div>
-      <div class="analysis-card">
-        <div class="ac-title">🏎️ Positions Gained / Lost</div>
-        <div id="pos-gain-list"></div>
-      </div>
-    </div>
-    <div class="analysis-grid">
-      <div class="analysis-card">
-        <div class="ac-title">⚡ Constructor Battle</div>
-        <div class="constr-battle" id="constr-battle-list"></div>
-      </div>
-      <div class="analysis-card">
-        <div class="ac-title">🔄 Grid vs Race Performance</div>
-        <div class="ac-canvas-sm"><canvas id="grid-perf-canvas"></canvas></div>
-      </div>
-      <div class="analysis-card">
-        <div class="ac-title">📋 Race Outcomes Matrix</div>
-        <div id="outcome-matrix"></div>
-      </div>
-    </div>
-    <div class="analysis-grid">
-      <div class="analysis-card span3">
-        <div class="ac-title">🔑 Race-by-Race Driver Status</div>
-        <div id="driver-status-matrix"></div>
-        <div class="wl-legend" id="status-legend"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 </div><div id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div id="modal-box">
     <div id="modal-hd"><div id="modal-title-txt">Results</div><button id="modal-close" onclick="closeModal()">✕</button></div>
@@ -853,9 +774,6 @@ function toggleTheme() {
     if(CHARTS.ptsGap) CHARTS.ptsGap.update();
     if(CHARTS.constr) CHARTS.constr.update();
     if(CHARTS.era) CHARTS.era.update();
-    if(CHARTS.ptsProg) CHARTS.ptsProg.update();
-    if(CHARTS.constrProg) CHARTS.constrProg.update();
-    if(CHARTS.gridPerf) CHARTS.gridPerf.update();
   }
 }
 initTheme();
@@ -1229,7 +1147,7 @@ function goto(page) {
   document.querySelectorAll('.mob-nav-btn').forEach(function(b) { b.classList.remove('active'); });
   var el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
-  var map = {home:0, results:1, standings:2, drivers:3, analysis:4};
+  var map = {home:0, results:1, standings:2, drivers:3};
   var idx = map[page];
   if (typeof idx !== 'undefined') {
     var desktopBtns = document.querySelectorAll('#nav .nav-item');
@@ -1238,7 +1156,6 @@ function goto(page) {
     if (mobileBtns[idx]) mobileBtns[idx].classList.add('active');
   }
   if (page === 'standings') setTimeout(renderStandingsCharts, 100);
-  if (page === 'analysis') setTimeout(renderAnalysis, 100);
   window.scrollTo(0, 0);
 }
 
@@ -1250,7 +1167,6 @@ function renderAll() {
   try { renderResultsSidebar(); } catch(e) { console.error('renderResultsSidebar error:', e); }
   try { renderStandings(); } catch(e) { console.error('renderStandings error:', e); }
   try { renderDriverSidebar(); } catch(e) { console.error('renderDriverSidebar error:', e); }
-  try { renderAnalysis(); } catch(e) { console.error('renderAnalysis error:', e); }
   try { loadDriver(S.currentDriver); } catch(e) { console.error('loadDriver error:', e); }
 }
 
@@ -1379,8 +1295,10 @@ function buildMap() {
 
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(function(world) {
     wrap.innerHTML = '';
-    var W = 1000;
-    var H = 500;
+    
+    // Dynamically query real element dimensions so `fitSize` works perfectly on desktop too
+    var W = wrap.clientWidth || 1000;
+    var H = wrap.clientHeight || 500;
 
     var projection = d3.geoNaturalEarth1().fitSize([W, H], topojson.feature(world, world.objects.countries));
     var path = d3.geoPath().projection(projection);
@@ -1623,8 +1541,6 @@ function renderQualiGrid(rnd) {
 function renderStandings() {
   var after = S.completedRounds ? 'After Round ' + S.completedRounds : '2026 Season';
   setText('std-after', after);
-  var el1 = document.getElementById('analysis-after');
-  if (el1) el1.textContent = 'After R' + S.completedRounds;
 
   var wdcEl = document.getElementById('wdc-list');
   if (wdcEl) {
@@ -1916,170 +1832,6 @@ function switchDtab(btn, tab) {
     var idx = map.indexOf(tab);
     var tabs = document.querySelectorAll('.dtab');
     if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
-  }
-}
-
-/* ═══════════════════════════════════════
-   ANALYSIS PAGE
-═══════════════════════════════════════ */
-function renderAnalysis() {
-  if (!S.completedRounds) return;
-  var rounds = [];
-  for (var i = 1; i <= S.completedRounds; i++) rounds.push(i);
-  
-  const isDark = document.body.classList.contains('dark');
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const textColor = isDark ? '#B0B0C0' : '#888899';
-
-  // Points progression
-  var top8 = S.wdc.slice(0,8);
-  var datasets = top8.map(function(s) {
-    var id = NUM_ID[parseInt(s.Driver.permanentNumber)];
-    var clr = TEAMCOL[s.Constructors[0].name] || '#666';
-    var cum = 0;
-    var data = rounds.map(function(rnd) {
-      var race = S.raceResults[rnd];
-      if (!race) return cum;
-      var driverNum = ID_NUM[id] || 0;
-      for (var j = 0; j < race.Results.length; j++) {
-        if (parseInt(race.Results[j].Driver.permanentNumber) === driverNum) {
-          cum += parseFloat(race.Results[j].points);
-          break;
-        }
-      }
-      return cum;
-    });
-    return {label:s.Driver.familyName, data:data, borderColor:clr, backgroundColor:clr+'22', borderWidth:2, pointRadius:4, pointBackgroundColor:clr, tension:0.3, fill:false};
-  });
-
-  killChart('ptsProg');
-  var c1 = document.getElementById('pts-prog-canvas');
-  if (c1 && typeof Chart !== 'undefined') {
-    CHARTS.ptsProg = new Chart(c1.getContext('2d'), {
-      type:'line',
-      data:{labels:rounds.map(function(r){return 'R'+r;}), datasets:datasets},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, position:'right', labels:{color:textColor,font:{size:10},padding:8,boxWidth:12}}}, scales:{y:{beginAtZero:true, grid:{color:gridColor}, ticks:{color:textColor,font:{size:10}}}, x:{grid:{display:false}, ticks:{color:textColor,font:{size:10}}}}}
-    });
-  }
-
-  // Constructor progression chart
-  var top6c = S.wcc.slice(0,6);
-  var conData = top6c.map(function(s) {
-    var clr = TEAMCOL[s.Constructor.name] || '#666', cum = 0;
-    var data = rounds.map(function(rnd) {
-      var race = S.raceResults[rnd]; if(!race) return cum;
-      race.Results.forEach(function(r) { if(r.Constructor.name === s.Constructor.name) cum += parseFloat(r.points); });
-      return cum;
-    });
-    return {label:s.Constructor.name, data:data, borderColor:clr, backgroundColor:clr+'22', borderWidth:3, pointRadius:4, pointBackgroundColor:clr, tension:0.4, fill:false};
-  });
-  killChart('constrProg');
-  var cpCanvas = document.getElementById('constr-prog-canvas');
-  if(cpCanvas && typeof Chart !== 'undefined') {
-    CHARTS.constrProg = new Chart(cpCanvas.getContext('2d'), {
-      type:'line', data:{labels:rounds.map(function(r){return 'R'+r;}), datasets:conData},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:textColor,usePointStyle:true,font:{size:10}}}}, scales:{y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:10}}}, x:{grid:{display:false},ticks:{color:textColor,font:{size:11,weight:'bold'}}}}}
-    });
-  }
-
-  // Positions gained/lost
-  var gains = DRV_S.map(function(d) {
-    var r = S.drvRaceResults[d.id] || [];
-    var g = r.reduce(function(a,x) { return a + (x.grid && x.status !== 'Did not start' ? x.grid - x.pos : 0); }, 0);
-    return {name:d.surname, color:TEAMS_S[d.team].color, gain:g};
-  }).filter(function(d){return d.gain !== 0;}).sort(function(a,b){return b.gain-a.gain;});
-  var maxGain = 1;
-  gains.forEach(function(d){if(Math.abs(d.gain)>maxGain)maxGain=Math.abs(d.gain);});
-  setHtml('pos-gain-list', gains.slice(0,10).map(function(d) {
-    return '<div class="gl-row">' +
-      '<div class="gl-name">' + d.name + '</div>' +
-      '<div class="gl-bar-wrap"><div class="gl-bar" style="width:' + (Math.abs(d.gain)/maxGain*100) + '%;background:' + (d.gain>0?'#22c55e':'#ef4444') + '"></div></div>' +
-      '<div class="gl-val" style="color:' + (d.gain>0?'#22c55e':'#ef4444') + '">' + (d.gain>0?'+':'') + d.gain + '</div>' +
-      '</div>';
-  }).join(''));
-
-  // Constructor battle
-  var maxPts = S.wcc.length ? (parseFloat(S.wcc[0].points) || 1) : 1;
-  setHtml('constr-battle-list', S.wcc.slice(0,8).map(function(s) {
-    var clr = TEAMCOL[s.Constructor.name] || '#666';
-    var name = s.Constructor.name.replace(' F1 Team','').replace(' Racing','');
-    return '<div class="cb-row">' +
-      '<div class="cb-team" style="color:' + clr + '">' + name + '</div>' +
-      '<div class="cb-bar-wrap"><div class="cb-bar" style="width:' + (parseFloat(s.points)/maxPts*100) + '%;background:' + clr + '"></div></div>' +
-      '<div class="cb-pts" style="color:' + clr + '">' + s.points + '</div>' +
-      '</div>';
-  }).join(''));
-
-  // Grid vs race scatter
-  var scatterData = [];
-  Object.values(S.raceResults).forEach(function(race) {
-    race.Results.forEach(function(r) {
-      var g = parseInt(r.grid), p = parseInt(r.position);
-      if (g && r.status !== 'Did not start') {
-        scatterData.push({x:g, y:p, color:TEAMCOL[r.Constructor.name]||'#666', label:r.Driver.familyName});
-      }
-    });
-  });
-  killChart('gridPerf');
-  var c2 = document.getElementById('grid-perf-canvas');
-  if (c2 && typeof Chart !== 'undefined') {
-    CHARTS.gridPerf = new Chart(c2.getContext('2d'), {
-      type:'scatter',
-      data:{datasets:[{data:scatterData, backgroundColor:scatterData.map(function(d){return d.color+'bb';}), borderColor:'transparent', pointRadius:5}]},
-      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(p){return (p.raw.label||'')+' G'+p.raw.x+'\u2192P'+p.raw.y;}}}}, scales:{x:{title:{display:true,text:'Grid',color:textColor},min:1,max:22,grid:{color:gridColor},ticks:{color:textColor,font:{size:9}}},y:{title:{display:true,text:'Race Pos',color:textColor},min:1,max:22,reverse:true,grid:{color:gridColor},ticks:{color:textColor,font:{size:9}}}}}
-    });
-  }
-
-  // Outcome matrix
-  var omEl = document.getElementById('outcome-matrix');
-  if (omEl && rounds.length) {
-    var headerCells = rounds.map(function(r){return '<th style="color:var(--text2);font-size:9px;padding:4px 5px;text-align:center">R'+r+'</th>';}).join('');
-    var tableRows = S.wdc.slice(0,10).map(function(s) {
-      var id = NUM_ID[parseInt(s.Driver.permanentNumber)];
-      var clr = TEAMCOL[s.Constructors[0].name] || '#666';
-      var driverNum = ID_NUM[id] || 0;
-      var cells = rounds.map(function(rnd) {
-        var race = S.raceResults[rnd];
-        if (!race) return '<td></td>';
-        var res = null;
-        for (var j = 0; j < race.Results.length; j++) {
-          if (parseInt(race.Results[j].Driver.permanentNumber) === driverNum) { res = race.Results[j]; break; }
-        }
-        if (!res) return '<td style="text-align:center;color:var(--text2)">\u2014</td>';
-        var pos = parseInt(res.position);
-        var isDNF = res.status === 'Retired' || res.status === 'Did not start';
-        var bg = isDNF ? '#2a1a1a' : pos===1 ? clr : pos<=3 ? clr+'66' : pos<=10 ? clr+'33' : 'var(--surface2)';
-        var txt = isDNF ? 'R' : ''+pos;
-        var tc = isDNF ? '#ef4444' : pos<=3 ? (pos===1?'#000':'#fff') : pos<=10 ? clr : 'var(--text2)';
-        return '<td style="text-align:center;padding:2px 4px"><span style="display:inline-block;width:24px;height:20px;border-radius:4px;background:' + bg + ';color:' + tc + ';font-weight:700;font-size:10px;line-height:20px">' + txt + '</span></td>';
-      }).join('');
-      return '<tr><td style="padding:3px 8px;font-weight:600;white-space:nowrap;font-size:11px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+clr+';margin-right:5px"></span>' + s.Driver.familyName + '</td>' + cells + '</tr>';
-    }).join('');
-    omEl.innerHTML = '<div style="overflow-x:auto"><table style="font-size:11px;border-collapse:collapse"><thead><tr><th style="text-align:left;color:var(--text2);font-size:9px;padding:4px 8px">Driver</th>' + headerCells + '</tr></thead><tbody>' + tableRows + '</tbody></table></div>';
-  }
-
-  // Driver status matrix
-  var dsEl = document.getElementById('driver-status-matrix');
-  if (dsEl) {
-    dsEl.innerHTML = DRV_S.map(function(d) {
-      var clr = TEAMS_S[d.team].color;
-      var dots = rounds.map(function(rnd) {
-        var race = S.raceResults[rnd];
-        if (!race) return '<div class="wl-dot wdns"></div>';
-        var res = null;
-        for (var j = 0; j < race.Results.length; j++) {
-          if (parseInt(race.Results[j].Driver.permanentNumber) === d.num) { res = race.Results[j]; break; }
-        }
-        if (!res) return '<div class="wl-dot wdns"></div>';
-        var pos = parseInt(res.position);
-        if (res.status === 'Retired' || res.status === 'Did not start') return '<div class="wl-dot dnf" title="DNF/DNS"></div>';
-        if (pos === 1) return '<div class="wl-dot" style="background:' + clr + '" title="P1 Win"></div>';
-        if (pos <= 3) return '<div class="wl-dot" style="background:' + clr + '66" title="P' + pos + ' Podium"></div>';
-        if (pos <= 10) return '<div class="wl-dot" style="background:' + clr + '33" title="P' + pos + ' Points"></div>';
-        return '<div class="wl-dot" style="background:var(--surface2)" title="P' + pos + '"></div>';
-      }).join('');
-      return '<div class="wl-row"><div class="wl-name" title="' + d.name + '">' + d.name.split(' ').pop() + '</div><div class="wl-dots">' + dots + '</div></div>';
-    }).join('');
   }
 }
 
