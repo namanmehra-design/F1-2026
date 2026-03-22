@@ -543,10 +543,10 @@ option { background:#0d0d2b; }
 /* ══════════════════════════════════════════
    PREDICTOR
 ══════════════════════════════════════════ */
-#page-predictor { flex-direction:column; overflow-y:auto; overflow-x:hidden; }
+#page-predictor { flex-direction:column; overflow:hidden; }
 #pred-head { padding:16px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; flex-shrink:0; background:rgba(0,0,0,0.3); }
 #pred-head h2 { font-family:var(--font-display); font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
-#pred-body { padding:18px; overflow-y:auto; flex:1; min-height:0; }
+#pred-body { padding:18px; overflow-y:auto; flex:1; min-height:200px; }
 .pred-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
 .pred-c { background:var(--glass-1); border:1px solid var(--line); border-radius:var(--r); padding:18px; }
 .pred-ct { font-family:var(--font-display); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; }
@@ -960,6 +960,12 @@ option { background:#0d0d2b; }
 
 <script>
 'use strict';
+window.onerror = function(msg, src, line, col, err) {
+  var el = document.getElementById('pred-banner');
+  if(el) el.innerHTML = '<div style="color:red;padding:10px;font-size:11px">JS ERROR: ' + msg + ' (line ' + line + ')</div>';
+  console.error('[APEX ERROR]', msg, src, line);
+  return false;
+};
 
 /* ═══════════════════════════════════════
    APIS
@@ -1317,13 +1323,14 @@ function goto(page) {
     },100);
   }
   if(page==='telem') setTimeout(initTelem,200);
-  if(page==='predictor') setTimeout(function(){
-    populateSelectors();
-    var ps=document.getElementById('pred-sel');
-    if(ps&&ps.options.length>0&&!ps.value){ps.selectedIndex=0;}
-    // Always call runPredictor - it now handles empty schedule gracefully
-    runPredictor();
-  },300);
+  if(page==='predictor') {
+    // If boot already done (S.schedule populated), run immediately
+    if(S.schedule.length > 0) {
+      populateSelectors();
+      setTimeout(runPredictor, 50);
+    }
+    // If boot not done yet, boot().then will fire runPredictor
+  }
   if(page==='archives') setTimeout(initArchives,100);
   window.scrollTo(0,0);
 }
@@ -3218,8 +3225,9 @@ window.addEventListener('load',()=>{
   buildMap();
   boot().then(()=>{
     populateSelectors();
-    // Auto-run predictor if on predict page when boot completes
-    if(document.getElementById('page-predictor').classList.contains('active')){
+    // Run predictor after boot completes (data is now ready)
+    var predPage = document.getElementById('page-predictor');
+    if(predPage && predPage.classList.contains('active')){
       setTimeout(runPredictor, 100);
     }
     setInterval(()=>boot(),5*60*1000);
