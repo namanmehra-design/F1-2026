@@ -432,13 +432,13 @@ body::before {
    LIVE CIRCUIT TRACKER
 ══════════════════════════════════════════ */
 #page-live { flex-direction:column; }
-#live-topbar { padding:10px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; flex-shrink:0; background:rgba(3,3,10,0.5); backdrop-filter:var(--blur); flex-wrap:wrap; }
+#live-topbar { padding:8px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; flex-shrink:0; background:rgba(3,3,10,0.5); backdrop-filter:var(--blur); flex-wrap:nowrap; overflow:hidden; min-height:0; }
 #live-topbar h2 { font-family:var(--font-display); font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
 .fsel { background:var(--glass-1); border:1px solid var(--line); border-radius:var(--r-sm); padding:5px 10px; color:var(--text); font-size:10px; cursor:pointer; font-family:var(--font-mono); outline:none; }
 .fsel:focus { border-color:var(--red); }
 option { background:#0d0d2b; }
-#live-body { flex:1; display:flex; overflow:hidden; min-height:0; }
-#circuit-wrap { flex:1; position:relative; background:#02020c; overflow:hidden; }
+#live-body { flex:1; display:flex; overflow:hidden; min-height:0; height:0; }
+#circuit-wrap { flex:1; position:relative; background:#02020c; overflow:hidden; min-height:300px; }
 #circuit-canvas { display:block; width:100%; height:100%; }
 #lap-badge { position:absolute; top:14px; left:14px; background:rgba(2,2,12,0.9); border:1px solid var(--line-hi); border-radius:var(--r-sm); padding:7px 14px; font-family:var(--font-display); font-size:20px; font-weight:800; z-index:10; }
 #replay-progress { position:absolute; bottom:46px; left:14px; right:14px; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; cursor:pointer; z-index:10; }
@@ -796,12 +796,12 @@ option { background:#0d0d2b; }
     <button class="pill-btn" id="play-btn" onclick="togglePlay()">▶ Play</button>
     <button class="pill-btn" onclick="resetPlay()">↺ Reset</button>
     <span class="mono" id="play-time" style="font-size:10px;color:var(--text-3)">—</span>
-    <div style="display:flex;align-items:center;gap:6px;background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 10px">
-      <span style="font-size:9px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;font-family:var(--font-mono)">LAP</span>
-      <button onclick="jumpLap(-1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1">‹</button>
-      <span id="lap-select-num" style="font-family:var(--font-display);font-size:16px;font-weight:800;min-width:24px;text-align:center;color:var(--text)">1</span>
-      <button onclick="jumpLap(1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1">›</button>
-      <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono)" id="lap-of-total">/ —</span>
+    <div style="display:flex;align-items:center;gap:4px;background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px 8px;flex-shrink:0">
+      <button onclick="jumpLap(-1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:13px;padding:0;line-height:1">‹</button>
+      <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono)">L</span>
+      <span id="lap-select-num" style="font-family:var(--font-display);font-size:14px;font-weight:800;min-width:20px;text-align:center">1</span>
+      <button onclick="jumpLap(1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:13px;padding:0;line-height:1">›</button>
+      <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono)" id="lap-of-total"></span>
     </div>
     <div style="margin-left:auto;display:flex;gap:5px" id="speed-btns">
       <button class="spd-btn on" onclick="setSpd(1,this)">1×</button>
@@ -1306,7 +1306,12 @@ function goto(page) {
   if(page==='analysis') setTimeout(renderAnalysis,100);
   if(page==='live') setTimeout(initLive,200);
   if(page==='telem') setTimeout(initTelem,200);
-  if(page==='predictor') setTimeout(runPredictor,100);
+  if(page==='predictor') setTimeout(function(){
+    populateSelectors();
+    var ps=document.getElementById('pred-sel');
+    if(ps&&ps.options.length>0&&!ps.value){ps.selectedIndex=0;}
+    runPredictor();
+  },200);
   if(page==='archives') setTimeout(initArchives,100);
   window.scrollTo(0,0);
 }
@@ -2778,9 +2783,41 @@ async function loadArchRace(skey,round,country,flag,year){
   if(tyEl) tyEl.innerHTML=drivers.slice(0,10).map(d=>{const clr='#'+(d.team_colour||'aaaaaa');const ds=allStints.filter(s=>s.driver_number===d.driver_number);const tyres=ds.map(s=>{const tclr={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'}[s.compound]||'#EEEEEE';const tcol=['#FFEE00','#EEEEEE'].includes(tclr)?'#000':'#fff';return`<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:${tclr};color:${tcol};font-size:6px;font-weight:800;margin-right:2px">${(s.compound||'H').charAt(0)}</span>`;}).join('');return`<div style="display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--line);font-size:9px"><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1;font-weight:500">${d.last_name||'#'+d.driver_number}</div><div>${tyres||'—'}</div></div>`;}).join('');
   const rcEl=document.getElementById('arch-rc');
   if(rcEl){
-    const meaningful=raceCtrl.filter(m=>{if(!m)return false;if(m.category==='SafetyCar')return true;if(m.flag&&m.flag!=='CLEAR'&&m.flag!=='GREEN')return true;if(m.message&&(m.message.includes('INCIDENT')||m.message.includes('INVESTIGATION')||m.message.includes('PENALTY')||m.message.includes('VSC')||m.message.includes('CHEQUERED')||m.message.includes('DRS ENABLED')||m.message.includes('TRACK LIMITS')))return true;return false;});
-    const showMsgs=meaningful.length?meaningful:raceCtrl.slice(0,15);
-    rcEl.innerHTML=showMsgs.slice(0,25).map(m=>{const clr=(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'#ffc800':m.category==='SafetyCar'?'var(--orange)':(m.flag==='RED')?'var(--red)':'var(--text-2)';const icon=(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'🟡':m.category==='SafetyCar'?'🟠':m.flag==='RED'?'🔴':m.flag==='CHEQUERED'?'🏁':'📋';const lap=m.lap_number?'L'+m.lap_number+' · ':'';return'<div style="display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px">'+'<span>'+icon+'</span>'+'<span style="color:var(--text-3);font-family:var(--font-mono);font-size:9px;min-width:56px">'+lap+(m.date||'').slice(11,19)+'</span>'+'<span style="color:'+clr+';font-weight:600;flex:1">'+(m.message||m.flag||m.category||'—')+'</span>'+'</div>';}).join('')+(raceCtrl.length===0?'<div class="empty">No race control data</div>':'');
+    // Show all meaningful RC messages — not just flagged ones
+    var rcFiltered=raceCtrl.filter(function(m){
+      if(!m) return false;
+      // Skip purely empty messages or plain CLEAR flags with no message
+      if(m.flag==='CLEAR'&&(!m.message||m.message==='')) return false;
+      if(!m.flag&&!m.message&&!m.category) return false;
+      return true;
+    });
+    // Sort: show flag events first, then others
+    var flagOrder={'RED':0,'YELLOW':1,'DOUBLE YELLOW':1,'BLUE':2,'CHEQUERED':3,'GREEN':4,'CLEAR':9,'None':5};
+    var sortedRC=rcFiltered.slice().sort(function(a,b){
+      var fa=flagOrder[a.flag]||5, fb=flagOrder[b.flag]||5;
+      if(fa!==fb) return fa-fb;
+      return (a.lap_number||0)-(b.lap_number||0);
+    });
+    var showMsgs=sortedRC.slice(0,30);
+    if(showMsgs.length){
+      var rcHtml='';
+      showMsgs.forEach(function(m){
+        var flag=m.flag&&m.flag!=='None'?m.flag:'';
+        var clr=flag==='RED'?'var(--red)':flag==='YELLOW'||flag==='DOUBLE YELLOW'?'#ffc800':m.category==='SafetyCar'?'var(--orange)':flag==='BLUE'?'#6699ff':flag==='GREEN'?'var(--green)':'var(--text-2)';
+        var icon=flag==='RED'?'&#x1F534;':flag==='YELLOW'||flag==='DOUBLE YELLOW'?'&#x1F7E1;':m.category==='SafetyCar'?'&#x1F7E0;':flag==='CHEQUERED'?'&#x1F3C1;':flag==='GREEN'?'&#x1F7E2;':flag==='BLUE'?'&#x1F535;':'&#x1F4CB;';
+        var lap=m.lap_number?'L'+m.lap_number+' ':'';
+        var time=(m.date||'').slice(11,19);
+        var txt=(m.message||flag||m.category||'').slice(0,80);
+        rcHtml+='<div style="display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px;align-items:flex-start">'
+          +'<span style="flex-shrink:0;font-size:11px">'+icon+'</span>'
+          +'<span style="color:var(--text-3);font-family:var(--font-mono);font-size:9px;min-width:60px;flex-shrink:0">'+lap+time+'</span>'
+          +'<span style="color:'+clr+';font-weight:600;flex:1;line-height:1.4">'+txt+'</span>'
+          +'</div>';
+      });
+      rcEl.innerHTML=rcHtml;
+    } else {
+      rcEl.innerHTML='<div class="empty" style="font-size:10px">No race control messages for this session</div>';
+    }
   }
   killChart('arch');
   const alc=document.getElementById('arch-laps-chart');
@@ -2872,6 +2909,54 @@ function runMLPredictor(){
   });
   stratHtml+='</div>';
   setHtml('pred-strat',stratHtml);
+
+  // Recent form — pred-form
+  var formHtml='';
+  feats.slice(0,10).forEach(function(f){
+    var l3=f.res.slice(-3);
+    var dots='';
+    l3.forEach(function(r){
+      var bg=r.pos===1?'var(--gold)':r.pos<=3?'var(--green)':r.pos<=10?f.color+'99':r.status==='Retired'?'var(--red)':'rgba(255,255,255,0.07)';
+      var txt=r.pos<=3?'#000':'#fff';
+      var lbl=r.status==='Retired'?'R':'P'+r.pos;
+      dots+='<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:3px;background:'+bg+';font-size:8px;font-weight:800;color:'+txt+';margin-right:3px">'+lbl+'</span>';
+    });
+    if(!dots) dots='<span style="color:var(--text-3);font-size:9px">No data</span>';
+    var ti=f.tm.trend==='surging'?'&#x1F525;':f.tm.trend==='fading'?'&#x1F4C9;':'&rarr;';
+    formHtml+='<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--line);font-size:10px">'
+      +'<div style="width:6px;height:6px;border-radius:50%;background:'+f.color+';flex-shrink:0"></div>'
+      +'<div style="width:70px;font-weight:600;flex-shrink:0">'+f.sur+'</div>'
+      +'<div style="flex:1">'+dots+'</div>'
+      +'<div style="font-size:9px;display:flex;align-items:center;gap:4px">'+ti+' <span style="color:var(--text-3)">'+f.avgG.toFixed(1)+'</span></div>'
+      +'</div>';
+  });
+  setHtml('pred-form',formHtml);
+
+  // Model factors for top driver — pred-factors
+  var factorItems=[
+    {l:'2026 Form (38%)',  v:w.formN.toFixed(1),  pct:w.formN},
+    {l:'Constructor (28%)',v:w.constrS.toFixed(1), pct:w.constrS},
+    {l:'Grid Pace (12%)',  v:w.gridS.toFixed(1),   pct:w.gridS/60*100},
+    {l:'Historical (8%)',  v:w.hist.toFixed(1),    pct:Math.min(100,w.hist/30*100)},
+    {l:'Reliability (7%)', v:w.relS.toFixed(1),    pct:w.relS/25*100},
+    {l:'Racecraft (7%)',   v:(w.rcS>0?'+':'')+w.rcS.toFixed(1), pct:(w.rcS+15)/40*100},
+    {l:'Pressure x',      v:'x'+w.pM.toFixed(2),  pct:(w.pM-0.9)/0.25*100},
+    {l:'Team Trend x',    v:'x'+w.tM.toFixed(2),  pct:(w.tM-0.8)/0.4*100}
+  ];
+  var factHtml='<div style="font-size:9px;color:var(--text-3);margin-bottom:8px">Score breakdown: <span style="color:'+w.color+'">'+w.sur+'</span> (raw '+w.raw.toFixed(1)+')</div>';
+  factorItems.forEach(function(fi){
+    var p=Math.max(0,Math.min(100,fi.pct));
+    factHtml+='<div style="margin-bottom:6px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px">'
+        +'<span style="color:var(--text-3)">'+fi.l+'</span>'
+        +'<span style="font-family:var(--font-mono);font-weight:700">'+fi.v+'</span>'
+      +'</div>'
+      +'<div style="height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden">'
+        +'<div style="width:'+p.toFixed(1)+'%;height:100%;background:'+w.color+';border-radius:2px"></div>'
+      +'</div>'
+    +'</div>';
+  });
+  setHtml('pred-factors',factHtml);
 }
 const runPredictor = runMLPredictor;
 
