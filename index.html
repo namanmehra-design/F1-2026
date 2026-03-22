@@ -382,8 +382,8 @@ body::before {
 #drv-hero-glow { position:absolute; inset:0; pointer-events:none; z-index:0; transition:0.5s; }
 #drv-hero-num { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-weight:800; font-size:180px; color:rgba(255,255,255,0.025); pointer-events:none; user-select:none; z-index:0; line-height:1; }
 .drv-inner { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
-#drv-hs { width:180px; height:180px; background-size:contain; background-position:bottom center; background-repeat:no-repeat; filter:drop-shadow(0 12px 24px rgba(0,0,0,0.5)); transition:background-image 0.3s; }
-.drv-ring { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid var(--text-3); background:#fff; backdrop-filter:none; margin-top:-28px; margin-bottom:12px; overflow:hidden; transition:border-color 0.3s; }
+#drv-hs { width:180px; height:180px; background-size:contain; background-position:bottom center; background-repeat:no-repeat; filter:drop-shadow(0 12px 24px rgba(0,0,0,0.5)); transition:background-image 0.3s; position:relative; z-index:1; }
+.drv-ring { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2.5px solid var(--text-3); background:#fff; margin-top:-30px; margin-bottom:14px; overflow:hidden; transition:border-color 0.3s; position:relative; z-index:5; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
 .drv-hero-team { font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-3); margin-bottom:4px; transition:color 0.3s; }
 .drv-hero-h1 { font-family:var(--font-display); font-size:38px; font-weight:800; text-transform:uppercase; line-height:1; margin:0 0 6px; letter-spacing:-0.5px; }
 .drv-hero-meta { font-size:11px; color:var(--text-3); }
@@ -529,7 +529,7 @@ option { background:#0d0d2b; }
 #arch-head { padding:16px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; flex-shrink:0; background:rgba(0,0,0,0.3); }
 #arch-head h2 { font-family:var(--font-display); font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
 #arch-body { flex:1; display:flex; overflow:hidden; min-height:0; }
-#arch-sidebar { width:280px; }
+#arch-sidebar { width:280px; overflow-y:auto; }
 #arch-main { flex:1; overflow-y:auto; padding:18px; }
 .year-header { padding:8px 12px; font-family:var(--font-display); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:var(--text-3); border-bottom:1px solid var(--line); background:rgba(0,0,0,0.2); flex-shrink:0; }
 .arch-race { display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); cursor:pointer; transition:0.12s; border-left:2px solid transparent; }
@@ -721,6 +721,8 @@ option { background:#0d0d2b; }
     <div id="rtabs">
       <button class="rtab on" onclick="switchRtab(this,'race')">Race Result</button>
       <button class="rtab" onclick="switchRtab(this,'quali')">Qualifying</button>
+      <button class="rtab" id="sprint-tab" onclick="switchRtab(this,'sprint')" style="display:none">⚡ Sprint</button>
+      <button class="rtab" id="sprint-quali-tab" onclick="switchRtab(this,'sprintquali')" style="display:none">Sprint Qualifying</button>
     </div>
     <div class="scroll" id="res-content"><div class="loading-box"><span>Select a race from the left</span></div></div>
   </div>
@@ -810,10 +812,19 @@ option { background:#0d0d2b; }
       <div id="replay-progress" onclick="seekPlay(event)"><div id="replay-prog-fill"></div></div>
       <div id="speed-btns" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10"></div>
       <div id="hover-driver">
-        <div id="hd-name" style="font-family:var(--font-display);font-size:18px;font-weight:800;text-transform:uppercase"></div>
-        <div id="hd-team" style="font-size:9px;color:var(--text-3);margin-top:2px"></div>
-        <div id="hd-gap" style="font-size:10px;margin-top:8px;font-family:var(--font-mono);color:var(--text-2)"></div>
-        <div id="hd-tyre" style="margin-top:8px"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div id="hd-name" style="font-family:var(--font-display);font-size:20px;font-weight:800;text-transform:uppercase;line-height:1"></div>
+            <div id="hd-team" style="font-size:9px;color:var(--text-3);margin-top:3px;letter-spacing:0.5px"></div>
+          </div>
+          <button onclick="hlDrv(null)" style="background:var(--glass-2);border:1px solid var(--line);color:var(--text-3);border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer">✕</button>
+        </div>
+        <div id="hd-gap" style="font-size:12px;margin-bottom:8px;font-family:var(--font-mono);color:var(--text-2);font-weight:700"></div>
+        <div id="hd-tyre" style="margin-bottom:10px"></div>
+        <div id="hd-laps" style="max-height:220px;overflow-y:auto;border-top:1px solid var(--line);padding-top:8px">
+          <div style="font-size:9px;color:var(--text-3);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase">Lap Times</div>
+          <div id="hd-laps-list" style="font-family:var(--font-mono);font-size:10px"></div>
+        </div>
       </div>
       <div id="wx-bar">
         <span>🌡 <span id="wx-a">—</span>°</span>
@@ -1064,9 +1075,21 @@ const CALENDAR = [
 
 // OpenF1 race sessions for 2026
 const OF1_RACES_2026 = [
-  {key:11234,round:1,country:'Australia',circuit:'Albert Park',flag:'🇦🇺',date:'2026-03-08'},
-  {key:11245,round:2,country:'China',circuit:'Shanghai',flag:'🇨🇳',date:'2026-03-15'}
+  {key:11234,round:1,country:'Australia',circuit:'Albert Park',flag:'🇦🇺',date:'2026-03-08',
+   quali:11230,sprint:null,sprintQuali:null},
+  {key:11245,round:2,country:'China',circuit:'Shanghai',flag:'🇨🇳',date:'2026-03-15',
+   quali:11241,sprint:11240,sprintQuali:11236}
 ];
+
+// Sprint weekend detection from 2026 calendar
+const SPRINT_WEEKENDS_2026 = {
+  2: {sprintKey:11240,sqKey:11236,name:'Chinese GP Sprint'},   // R2 China
+  6: {sprintKey:11275,sqKey:11271,name:'Miami Sprint'},        // R6 Miami (upcoming)
+  7: {sprintKey:11286,sqKey:11282,name:'Canadian Sprint'},     // R7 Canada
+  12: {sprintKey:11321,sqKey:11317,name:'British Sprint'},     // R12 UK
+  14: {sprintKey:11348,sqKey:11344,name:'Dutch Sprint'},       // R14 Netherlands
+  18: {sprintKey:11383,sqKey:11379,name:'Singapore Sprint'},   // R18 Singapore
+};
 
 // Archive sessions
 const ARCH_SESSIONS = {
@@ -1409,13 +1432,15 @@ function renderResSidebar() {
     const race=S.raceResults[rnd], sch=S.schedule.find(s=>s.round===rnd);
     const flag=sch?sch.flag:'🏁', w=race.Results[0];
     let fl=null; race.Results.forEach(r=>{if(r.FastestLap&&r.FastestLap.rank==='1')fl=r;});
-    return `<div class="rrb" id="rrb-${rnd}" onclick="loadRaceRes(${rnd})">
-      <div class="rrb-rnd">R${rnd} · ${race.date.slice(5,10)}</div>
-      <div class="rrb-info">
-        <div class="rrb-name">${flag} ${race.raceName.replace(' Grand Prix',' GP')}</div>
-        <div class="rrb-sub">🏆 ${w.Driver.familyName} · ${w.Constructor.name}</div>
-        ${fl?`<div class="rrb-sub" style="color:#a855f7">⚡ FL: ${fl.Driver.familyName}</div>`:''}
-      </div></div>`;
+    const hasSprint=!!SPRINT_WEEKENDS_2026[rnd];
+    const sprintBadge=hasSprint?'<span style="color:var(--orange);font-weight:900;margin-left:4px">⚡S</span>':'';
+    return '<div class="rrb" id="rrb-'+rnd+'" onclick="loadRaceRes('+rnd+')">'
+      +'<div class="rrb-rnd">R'+rnd+' · '+race.date.slice(5,10)+sprintBadge+'</div>'
+      +'<div class="rrb-info">'
+      +'<div class="rrb-name">'+flag+' '+race.raceName.replace(' Grand Prix',' GP')+'</div>'
+      +'<div class="rrb-sub">🏆 '+w.Driver.familyName+' · '+w.Constructor.name+'</div>'
+      +(fl?'<div class="rrb-sub" style="color:#a855f7">⚡ FL: '+fl.Driver.familyName+'</div>':'')
+      +'</div></div>';
   }).join('');
   if(rounds.length) loadRaceRes(rounds[0]);
 }
@@ -1445,10 +1470,75 @@ function loadRaceRes(rnd) {
     <div class="rhb"><div class="rhb-val">${pts}</div><div class="rhb-lbl">Pts Awarded</div></div>
     <div class="rhb"><div class="rhb-val">${race.Results.filter(r=>r.status==='Retired').length}</div><div class="rhb-lbl">DNFs</div></div>
   `);
+  // Show/hide sprint tabs based on round
+  const sprintBtn=document.getElementById('sprint-tab');
+  const sprintQBtn=document.getElementById('sprint-quali-tab');
+  if(sprintBtn&&sprintQBtn){
+    const hasSprint=!!SPRINT_WEEKENDS_2026[rnd];
+    sprintBtn.style.display=hasSprint?'':'none';
+    sprintQBtn.style.display=hasSprint?'':'none';
+    if(hasSprint){
+      const sw=SPRINT_WEEKENDS_2026[rnd];
+      sprintBtn.textContent='⚡ Sprint · '+sw.name.split(' ').pop();
+      sprintQBtn.textContent='Sprint Quali';
+    }
+  }
   renderRaceTab();
 }
 
-function renderRaceTab(){if(!S.curRace)return;_rTab==='race'?renderRaceGrid(S.curRace):renderQualiGrid(S.curRace);}
+function renderRaceTab(){
+  if(!S.curRace)return;
+  if(_rTab==='race')renderRaceGrid(S.curRace);
+  else if(_rTab==='quali')renderQualiGrid(S.curRace);
+  else if(_rTab==='sprint')renderSprintGrid(S.curRace);
+  else if(_rTab==='sprintquali')renderSprintQualiGrid(S.curRace);
+}
+
+async function renderSprintGrid(rnd) {
+  const sw=SPRINT_WEEKENDS_2026[rnd];
+  if(!sw){setHtml('res-content','<div class="empty">No sprint for this round</div>');return;}
+  setHtml('res-content','<div class="loading-box"><div class="spin-ring"></div><span>Loading sprint data…</span></div>');
+  // Try Jolpica first
+  const jd=await apiFetch(`${JOLPICA}/f1/2026/${rnd}/sprint.json`,'sprint');
+  if(jd&&jd.MRData&&jd.MRData.RaceTable.Races.length){
+    const race=jd.MRData.RaceTable.Races[0];
+    const rows=race.SprintResults.map(r=>{
+      const pos=parseInt(r.position),clr=TEAMCOL[r.Constructor.name]||'#666';
+      const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+      return`<tr><td><span class="dt-pos ${pc}">${pos}</span></td><td style="font-family:var(--font-mono);font-size:9px;color:var(--text-3)">${r.Driver.permanentNumber}</td><td>${r.Driver.givenName} ${r.Driver.familyName}</td><td><span class="dot" style="background:${clr}"></span>${r.Constructor.name}</td><td>${r.grid||'—'}</td><td style="font-family:var(--font-display);font-weight:800;font-size:16px;${pos<=3?'color:'+clr:''};text-align:right">${r.points}</td></tr>`;
+    }).join('');
+    setHtml('res-content',`<div style="padding:12px 16px;background:var(--red-dim);border-bottom:1px solid var(--red-glow)"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--red)">⚡ SPRINT RACE · ${race.raceName}</span></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Grid</th><th style="text-align:right">Pts</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+    return;
+  }
+  // Fallback: fetch from OpenF1
+  const laps=await of1('laps',`session_key=${sw.sprintKey}&driver_number=63`);
+  if(laps&&laps.length){
+    setHtml('res-content',`<div style="padding:20px;text-align:center;color:var(--text-3)">Sprint session key ${sw.sprintKey} · ${laps.length} lap entries · Results pending from Jolpica</div>`);
+  } else {
+    setHtml('res-content','<div class="empty">Sprint result not yet available</div>');
+  }
+}
+
+async function renderSprintQualiGrid(rnd) {
+  const sw=SPRINT_WEEKENDS_2026[rnd];
+  if(!sw){setHtml('res-content','<div class="empty">No sprint qualifying for this round</div>');return;}
+  setHtml('res-content','<div class="loading-box"><div class="spin-ring"></div></div>');
+  const laps=await of1('laps',`session_key=${sw.sqKey}`);
+  if(!laps||!laps.length){setHtml('res-content','<div class="empty">Sprint qualifying data not available</div>');return;}
+  // Build leaderboard from fastest laps
+  const byDriver={};
+  laps.forEach(l=>{if(!l.lap_duration||l.lap_duration<50)return;if(!byDriver[l.driver_number]||l.lap_duration<byDriver[l.driver_number].lap_duration)byDriver[l.driver_number]=l;});
+  const sorted=Object.values(byDriver).sort((a,b)=>a.lap_duration-b.lap_duration);
+  const fmtT=s=>{const m=Math.floor(s/60),sec=(s%60).toFixed(3);return m+':'+(parseFloat(sec)<10?'0':'')+sec;};
+  const rows=sorted.map((l,i)=>{
+    const pos=i+1,num=l.driver_number,d=DRV_S.find(x=>x.num===num);
+    const clr=d?TEAMS_S[d.team].color:'#666';
+    const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+    const gap=i>0?'+'+(l.lap_duration-sorted[0].lap_duration).toFixed(3):'—';
+    return`<tr><td><span class="dt-pos ${pc}">${pos}</span></td><td style="font-family:var(--font-mono);font-size:9px;color:var(--text-3)">${num}</td><td>${d?d.name:'#'+num}</td><td><span class="dot" style="background:${clr}"></span>${d?TEAMS_S[d.team].name:'—'}</td><td class="mono" style="font-size:10px">${fmtT(l.lap_duration)}</td><td class="mono" style="font-size:10px;color:var(--text-3)">${gap}</td></tr>`;
+  }).join('');
+  setHtml('res-content',`<div style="padding:12px 16px;background:rgba(255,107,0,0.08);border-bottom:1px solid rgba(255,107,0,0.2)"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--orange)">⚡ SPRINT QUALIFYING · Session ${sw.sqKey}</span></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Pos</th><th>#</th><th>Driver</th><th>Team</th><th>Best Lap</th><th>Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+}
 
 function renderRaceGrid(rnd) {
   const race=S.raceResults[rnd]; if(!race) return;
@@ -1963,16 +2053,71 @@ function buildTower() {
 }
 
 function hlDrv(num){
-  CT.hiDrv=CT.hiDrv===num?null:num;
+  CT.hiDrv=(CT.hiDrv===num||num===null)?null:num;
   document.querySelectorAll('.tr-row').forEach(r=>r.classList.remove('hl'));
   const hd=document.getElementById('hover-driver');
   if(CT.hiDrv){
     const e=document.getElementById('tr-'+CT.hiDrv); if(e) e.classList.add('hl');
     if(hd) hd.style.display='block';
+    loadDriverLapData(CT.hiDrv);
   } else {
     if(hd) hd.style.display='none';
   }
   drawFrame(CT.curFrame);
+}
+
+async function loadDriverLapData(num) {
+  const lapsList = document.getElementById('hd-laps-list');
+  if(!lapsList||!CT.skey) return;
+  lapsList.innerHTML='<div style="color:var(--text-3)">Loading laps…</div>';
+  const [laps, stints, ints] = await Promise.all([
+    of1('laps',`session_key=${CT.skey}&driver_number=${num}`),
+    of1('stints',`session_key=${CT.skey}&driver_number=${num}`),
+    of1('intervals',`session_key=${CT.skey}&driver_number=${num}`)
+  ]);
+  const validLaps = (laps||[]).filter(l=>l.lap_duration&&l.lap_duration>60&&!l.is_pit_out_lap).sort((a,b)=>a.lap_number-b.lap_number);
+  if(!validLaps.length){lapsList.innerHTML='<div style="color:var(--text-3)">No lap data</div>';return;}
+  const fl=validLaps.reduce((a,b)=>a.lap_duration<b.lap_duration?a:b);
+  const avg=validLaps.reduce((a,b)=>a+b.lap_duration,0)/validLaps.length;
+  const pitLaps=new Set((stints||[]).filter((_,i)=>i>0).map(s=>s.lap_start));
+  const tyreMap={};
+  (stints||[]).forEach(s=>{for(let l=s.lap_start;l<=(s.lap_end||999);l++)tyreMap[l]=s.compound;});
+  // Update tyre display
+  const tyreEl=document.getElementById('hd-tyre');
+  if(tyreEl&&stints&&stints.length){
+    const tyreClrs={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'};
+    tyreEl.innerHTML=stints.map(s=>{
+      const c=s.compound||'H',tc=tyreClrs[c]||'#EEEEEE';
+      const lbl=(s.compound||'H').charAt(0);
+      const txtCol=['MEDIUM','HARD'].includes(c)?'#000':'#fff';
+      return`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${tc};color:${txtCol};font-size:8px;font-weight:900;margin-right:3px">${lbl}</span>`;
+    }).join('')+`<span style="font-size:9px;color:var(--text-3);margin-left:4px">${stints.length} stops</span>`;
+  }
+  // Render lap table
+  lapsList.innerHTML = validLaps.map(l=>{
+    const t=l.lap_duration, m=Math.floor(t/60), s=(t%60).toFixed(3);
+    const tStr=m+':'+(parseFloat(s)<10?'0':'')+s;
+    const isFl=l.lap_duration===fl.lap_duration;
+    const isPit=pitLaps.has(l.lap_number);
+    const delta=l.lap_duration-avg;
+    const dc=delta<-1?'#22D97A':delta>2?'#FF3520':'var(--text-3)';
+    const tyre=tyreMap[l.lap_number];
+    const tc={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'}[tyre]||'rgba(255,255,255,0.2)';
+    return`<div style="display:flex;align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <span style="color:var(--text-3);min-width:20px;font-size:9px">${l.lap_number}</span>
+      <span style="flex:1;${isFl?'color:#a855f7;font-weight:900':''}">${tStr}${isFl?' ⚡':''}</span>
+      <span style="color:${dc};min-width:32px;text-align:right;font-size:9px">${delta>0?'+':''}${delta.toFixed(2)}</span>
+      ${tyre?`<span style="width:6px;height:6px;border-radius:50%;background:${tc};flex-shrink:0"></span>`:''}
+      ${isPit?`<span style="font-size:7px;font-weight:700;color:var(--orange);background:rgba(255,107,0,0.15);padding:1px 4px;border-radius:2px">PIT</span>`:''}
+    </div>`;
+  }).join('');
+  // Update gap in header
+  const gapEl=document.getElementById('hd-gap');
+  if(gapEl){
+    const lastInt=(ints||[]).slice(-1)[0];
+    const pos=validLaps.length;
+    gapEl.textContent=(lastInt&&lastInt.gap_to_leader>0?'+'+lastInt.gap_to_leader.toFixed(3)+'s':'LEADER')+' · FL: '+Math.floor(fl.lap_duration/60)+':'+(fl.lap_duration%60<10?'0':'')+parseFloat((fl.lap_duration%60).toFixed(3));
+  }
 }
 
 function drawFrame(fi) {
@@ -2282,13 +2427,48 @@ async function loadTelem() {
     carEl.innerHTML='<div class="empty">Car telemetry data loading… select a session</div>';
   }
 
-  // Stints
-  setHtml('t-stints',(stints||[]).map(s=>{
-    const tclr={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'}[s.compound]||'#EEEEEE';
-    const tcol=['#FFEE00','#EEEEEE'].includes(tclr)?'#000':'#fff';
-    return`<div class="stint-seg" style="background:${tclr};color:${tcol}">${(s.compound||'H').charAt(0)} L${s.lap_start}→${s.lap_end||'?'}</div>`;
-  }).join(''));
-  setHtml('t-stint-d',(stints||[]).map(s=>`<div style="font-size:9px;color:var(--text-3);margin-top:3px">Stint ${s.stint_number}: ${s.compound||'?'} (age ${s.tyre_age_at_start}) · L${s.lap_start}-${s.lap_end||'?'}</div>`).join(''));
+  // Tyre Strategy — compact visual bar timeline
+  const totalLaps = vl.length ? Math.max(...vl.map(l=>l.lap_number)) : 58;
+  const tyreClrs = {SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'};
+  const tyreTxt  = {SOFT:'S',MEDIUM:'M',HARD:'H',INTERMEDIATE:'I',WET:'W'};
+  const tyreName = {SOFT:'Soft',MEDIUM:'Medium',HARD:'Hard',INTERMEDIATE:'Inter',WET:'Wet'};
+  const stintsToUse = stints && stints.length ? stints : [];
+  if(stintsToUse.length) {
+    // Build visual bar
+    const barSegs = stintsToUse.map(s=>{
+      const c=s.compound||'HARD', tc=tyreClrs[c]||'#EEEEEE', lbl=tyreTxt[c]||'H';
+      const lapEnd=s.lap_end||totalLaps, laps=lapEnd-s.lap_start+1;
+      const pct=Math.max(4,(laps/totalLaps)*100);
+      const txtCol=['MEDIUM','HARD'].includes(c)?'#000':'#fff';
+      return `<div title="${tyreName[c]} · L${s.lap_start}–${lapEnd} (${laps} laps, age ${s.tyre_age_at_start})" 
+        style="flex:${pct};background:${tc};border-radius:${stintsToUse.indexOf(s)===0?'5px 0 0 5px':''}${stintsToUse.indexOf(s)===stintsToUse.length-1?'0 5px 5px 0':''};
+        display:flex;align-items:center;justify-content:center;padding:6px 4px;min-width:28px;
+        color:${txtCol};font-weight:900;font-size:11px;cursor:default;position:relative">
+        <span style="writing-mode:horizontal-tb">${lbl}</span>
+      </div>`;
+    }).join('<div style="width:2px;background:var(--cosmos);flex-shrink:0"></div>');
+    
+    // Detail rows
+    const detailRows = stintsToUse.map(s=>{
+      const c=s.compound||'HARD', tc=tyreClrs[c]||'#EEEEEE';
+      const lapEnd=s.lap_end||totalLaps, laps=lapEnd-s.lap_start+1;
+      const pitData=(pits||[]).find(p=>p.lap_number===s.lap_start);
+      const pitStr=pitData?` · Pit ${pitData.pit_duration}s`:'';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${tc};flex-shrink:0"></div>
+        <div style="font-weight:700;min-width:55px">${tyreName[c]}</div>
+        <div style="color:var(--text-3);font-family:var(--font-mono);font-size:9px">L${s.lap_start}→${lapEnd} · ${laps} laps · age ${s.tyre_age_at_start}${pitStr}</div>
+      </div>`;
+    }).join('');
+    
+    setHtml('t-stints',`
+      <div style="display:flex;height:36px;border-radius:5px;overflow:hidden;margin-bottom:12px">${barSegs}</div>
+      <div style="font-size:9px;color:var(--text-3);margin-bottom:8px;font-family:var(--font-mono)">${stintsToUse.length} stints · ${totalLaps} laps · ${(pits||[]).length} stops</div>
+      ${detailRows}`);
+  } else {
+    setHtml('t-stints','<div class="empty">Tyre data loading — try refreshing after selecting session</div>');
+  }
+  setHtml('t-stint-d','');
 
   // Sectors
   const s1s=vl.filter(l=>l.duration_sector_1).map(l=>l.duration_sector_1);
@@ -2321,13 +2501,76 @@ async function loadTelem() {
 ═══════════════════════════════════════ */
 let _archYear=2025, _archSess=null;
 
+
+/* ═══════════════════════════════════════
+   SEASON OVERVIEW
+═══════════════════════════════════════ */
+const SEASON_DATA = {2025: {"champion": "Lando Norris", "team": "McLaren", "pts": 633, "wins": 14, "wcc": "McLaren", "wccPts": 833, "highlights": ["McLaren dominated all season — 14 constructor wins", "Norris clinched title at R21 Brazil", "Verstappen won 3 races — Red Bull fell from 2023 dominance", "Ferrari surprise — Hamilton wins Silverstone in debut season", "Alpine resurgence mid-season with Gasly podiums"], "raceWinners": {"McLaren": 14, "Mercedes": 4, "Red Bull": 3, "Ferrari": 2, "Williams": 1}}, 2024: {"champion": "Max Verstappen", "team": "Red Bull", "pts": 437, "wins": 9, "wcc": "McLaren", "wccPts": 666, "highlights": ["McLaren won Constructors — most dramatic championship swing", "Verstappen clinched 4th title despite weaker second half", "Norris won 6 races but ran out of time", "Hamilton leaves Mercedes for Ferrari after 12 years"], "raceWinners": {"Red Bull": 9, "McLaren": 6, "Ferrari": 5, "Mercedes": 2}}, 2023: {"champion": "Max Verstappen", "team": "Red Bull", "pts": 575, "wins": 19, "wcc": "Red Bull", "wccPts": 860, "highlights": ["Verstappen broke all records — 19 wins in a season", "10 consecutive wins mid-season", "Only Sainz (Singapore) and Perez (Baku, Saudi) denied clean sweep", "Red Bull won 21 of 22 races"], "raceWinners": {"Red Bull": 21, "Ferrari": 1}}, 2022: {"champion": "Max Verstappen", "team": "Red Bull", "pts": 454, "wins": 15, "wcc": "Red Bull", "wccPts": 759, "highlights": ["New ground-effect regulations reset the order", "Ferrari fast early — Leclerc led first half of season", "Red Bull reliability issues early, then dominant", "Verstappen clinched P1 with 5 races to spare"], "raceWinners": {"Red Bull": 17, "Ferrari": 4, "Aston Martin": 1}}, 2021: {"champion": "Max Verstappen", "team": "Red Bull", "pts": 395.5, "wins": 10, "wcc": "Mercedes", "wccPts": 613.5, "highlights": ["Most dramatic title decider in F1 history — Abu Dhabi final lap", "Hamilton and Verstappen collided twice (Silverstone, Monza)", "First Dutch World Champion", "Mercedes won 8th consecutive constructors title"], "raceWinners": {"Red Bull": 11, "Mercedes": 9, "Alpine": 1, "McLaren": 1}}};
+
+function renderSeasonOverview(year) {
+  const main = document.getElementById('arch-main'); if(!main) return;
+  const d = SEASON_DATA[year];
+  if(!d){ main.innerHTML='<div class="arch-empty" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px"><div style="font-size:9px;color:var(--text-3);letter-spacing:2px">SELECT A RACE</div></div>'; return; }
+  const raceCount = (ARCH_SESSIONS[year]||[]).length;
+  const winBars = Object.entries(d.raceWinners).sort((a,b)=>b[1]-a[1]).map(([team,wins])=>{
+    const maxW = Math.max(...Object.values(d.raceWinners));
+    const clr = Object.values(TEAMCOL).find((_,i)=>Object.keys(TEAMCOL)[i].toLowerCase().includes(team.toLowerCase().split(' ')[0].toLowerCase()))||'#666';
+    // Match team color
+    const teamClr = (() => {
+      const k = Object.keys(TEAMCOL).find(t => t.toLowerCase().includes(team.toLowerCase().split(' ')[0]));
+      return k ? TEAMCOL[k] : '#888';
+    })();
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px">
+      <div style="width:80px;color:${teamClr};font-weight:600">${team}</div>
+      <div style="flex:1;height:8px;background:var(--glass-2);border-radius:4px;overflow:hidden">
+        <div style="width:${wins/maxW*100}%;height:100%;background:${teamClr};border-radius:4px"></div>
+      </div>
+      <div style="min-width:20px;text-align:right;font-family:var(--font-mono);font-size:10px;color:${teamClr}">${wins}</div>
+    </div>`;
+  }).join('');
+  main.innerHTML = `
+    <div style="margin-bottom:18px;display:flex;gap:16px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px">${year} Season Overview</div>
+        <div style="font-family:var(--font-display);font-size:32px;font-weight:800;text-transform:uppercase">${d.champion}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${d.team} · ${d.wins} wins · ${d.pts} points</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase;margin-bottom:4px">Constructors</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:800">${d.wcc}</div>
+        <div style="font-size:10px;color:var(--text-3)">${d.wccPts} pts</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="tc">
+        <div class="tc-ttl">Season Highlights</div>
+        ${d.highlights.map(h=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px;color:var(--text-2)"><span style="color:var(--red);flex-shrink:0">›</span>${h}</div>`).join('')}
+      </div>
+      <div class="tc">
+        <div class="tc-ttl">Race Wins by Constructor</div>
+        <div style="margin-top:6px">${winBars}</div>
+        <div style="margin-top:10px;font-size:9px;color:var(--text-3);font-family:var(--font-mono)">${raceCount} races · Select a race from the sidebar for detailed data</div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="tc-ttl">Championship Stats</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px">
+        <div><div class="tc-hero" style="font-size:32px">${d.wins}</div><div class="tc-sub">Driver Wins</div></div>
+        <div><div class="tc-hero" style="font-size:32px">${d.pts}</div><div class="tc-sub">Champion Pts</div></div>
+        <div><div class="tc-hero" style="font-size:32px">${raceCount}</div><div class="tc-sub">Races</div></div>
+        <div><div class="tc-hero" style="font-size:32px">${Object.keys(d.raceWinners).length}</div><div class="tc-sub">Different Winners</div></div>
+      </div>
+    </div>`;
+}
+
 function initArchives() {
   _archYear = 2025;
   const yEl=document.getElementById('arch-years');
   if(yEl) yEl.innerHTML=[2025,2024,2023,2022,2021].map(y=>`<button class="pill-btn ${y===_archYear?'on':''}" onclick="setArchYear(${y})">${y}</button>`).join('');
   renderArchList();
+  renderSeasonOverview(_archYear);
 }
-function setArchYear(y){_archYear=y;document.querySelectorAll('#arch-years .pill-btn').forEach((b,i)=>{b.classList.toggle('on',[2025,2024,2023,2022,2021][i]===y);});renderArchList();}
+function setArchYear(y){_archYear=y;document.querySelectorAll('#arch-years .pill-btn').forEach((b,i)=>{b.classList.toggle('on',[2025,2024,2023,2022,2021][i]===y);});renderArchList();renderSeasonOverview(y);}
 function renderArchList(){
   const el=document.getElementById('arch-race-list'); if(!el) return;
   const sessions=ARCH_SESSIONS[_archYear]||[];
@@ -2370,12 +2613,17 @@ async function loadArchRace(skey,round,country,flag,year){
   drivers.forEach(d=>{const dl=allLaps.filter(l=>l.driver_number===d.driver_number&&l.lap_duration&&l.lap_duration>60&&!l.is_pit_out_lap);if(dl.length)flPerDriver[d.driver_number]=Math.min(...dl.map(l=>l.lap_duration));});
   const sorted=[...drivers].sort((a,b)=>(flPerDriver[a.driver_number]||9999)-(flPerDriver[b.driver_number]||9999));
   const gc='rgba(255,255,255,0.04)',tc='rgba(255,255,255,0.3)';
+  // Also fetch race results from Jolpica for the enriched view
+  const sessInfo = (ARCH_SESSIONS[_archYear]||[]).find(s=>s.key===skey);
+  const jolRes = sessInfo ? await apiFetch(`${JOLPICA}/f1/${_archYear}/${sessInfo.round}/results.json`, 'arch-res') : null;
+  const jolRace = jolRes?.MRData?.RaceTable?.Races?.[0];
+
   main.innerHTML=`
-    <div style="margin-bottom:16px">
+    <div style="margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap">
         <div style="font-size:32px">${flag}</div>
-        <div><div style="font-family:var(--font-display);font-size:22px;font-weight:800;text-transform:uppercase">${country} Grand Prix</div><div style="font-size:9px;color:var(--text-3);margin-top:2px;letter-spacing:1px">ARCHIVE · ${_archYear} · SESSION ${skey}</div></div>
-        ${wxMid?`<div style="margin-left:auto;display:flex;gap:10px;font-size:9px;color:var(--text-3);font-family:var(--font-mono)"><span>🌡 ${wxMid.air_temperature}°</span><span>🛣 ${wxMid.track_temperature}°</span><span>💨 ${wxMid.wind_speed}</span><span>${wxMid.rainfall>0?'🌧':'☀'}</span></div>`:''}
+        <div style="flex:1"><div style="font-family:var(--font-display);font-size:22px;font-weight:800;text-transform:uppercase">${country} Grand Prix</div><div style="font-size:9px;color:var(--text-3);margin-top:2px;letter-spacing:1px">ARCHIVE · ${_archYear} · SESSION ${skey}</div></div>
+        ${wxMid?`<div style="display:flex;gap:10px;font-size:9px;color:var(--text-3);font-family:var(--font-mono)"><span>🌡 ${wxMid.air_temperature}°</span><span>🛣 ${wxMid.track_temperature}°</span><span>💨 ${wxMid.wind_speed}</span><span>${wxMid.rainfall>0?'🌧':'☀'}</span></div>`:''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
         <div class="tc"><div class="tc-ttl">Drivers Tracked</div><div class="tc-hero">${drivers.length}</div></div>
@@ -2386,12 +2634,44 @@ async function loadArchRace(skey,round,country,flag,year){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="tc"><div class="tc-ttl">⚡ Fastest Lap Leaderboard</div><div id="arch-fl-list" style="margin-top:6px"></div></div>
-      <div class="tc"><div class="tc-ttl">Tyre Strategy</div><div id="arch-tyre-list" style="margin-top:6px"></div></div>
+      <div class="tc"><div class="tc-ttl">🛞 Tyre Strategy</div><div id="arch-tyre-list" style="margin-top:6px"></div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div class="tc"><div class="tc-ttl">Race Control Highlights</div><div id="arch-rc" style="max-height:140px;overflow-y:auto;margin-top:6px"></div></div>
-      <div class="tc"><div class="tc-ttl">Pace Comparison (laps recorded)</div><div style="height:140px;position:relative"><canvas id="arch-laps-chart"></canvas></div></div>
+      <div class="tc"><div class="tc-ttl">🏁 Race Results & Points</div><div id="arch-race-results" style="margin-top:6px;max-height:280px;overflow-y:auto"></div></div>
+      <div class="tc"><div class="tc-ttl">📊 Positions Gained / Lost</div><div id="arch-pos-gains" style="margin-top:6px"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="tc"><div class="tc-ttl">🚩 Race Control Highlights</div><div id="arch-rc" style="max-height:130px;overflow-y:auto;margin-top:6px"></div></div>
+      <div class="tc"><div class="tc-ttl">📈 Pace Comparison</div><div style="height:130px;position:relative"><canvas id="arch-laps-chart"></canvas></div></div>
     </div>`;
+
+  // Populate Race Results + Points from Jolpica
+  const resEl=document.getElementById('arch-race-results');
+  if(resEl&&jolRace){
+    resEl.innerHTML=jolRace.Results.map(r=>{
+      const pos=parseInt(r.position),clr=TEAMCOL[r.Constructor.name]||'#666';
+      const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+      const fl=r.FastestLap&&r.FastestLap.rank==='1';
+      const grid=parseInt(r.grid)||pos,delta=grid-pos;
+      const dc=delta>0?'var(--green)':delta<0?'var(--red)':'var(--text-3)';
+      return`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px">
+        <span class="dt-pos ${pc}" style="font-size:14px;width:18px">${pos}</span>
+        <span style="width:5px;height:5px;border-radius:50%;background:${clr};flex-shrink:0"></span>
+        <span style="flex:1;font-weight:500">${fl?'<span class="fl">FL</span> ':''}${r.Driver.familyName}</span>
+        <span style="color:var(--text-3);font-size:9px">${r.Constructor.name.split(' ')[0]}</span>
+        <span style="color:${dc};font-size:9px;min-width:22px;text-align:center">${delta>0?'↑'+delta:delta<0?'↓'+Math.abs(delta):'—'}</span>
+        <span style="font-family:var(--font-display);font-weight:800;font-size:15px;${pos<=3?'color:'+clr:''}">${r.points}</span>
+      </div>`;
+    }).join('');
+  } else if(resEl){resEl.innerHTML='<div class="empty">Results loading…</div>';}
+
+  // Positions gained
+  const pgEl=document.getElementById('arch-pos-gains');
+  if(pgEl&&jolRace){
+    const gains=jolRace.Results.map(r=>{const pos=parseInt(r.position),grid=parseInt(r.grid)||pos,delta=grid-pos;return{name:r.Driver.familyName,clr:TEAMCOL[r.Constructor.name]||'#666',delta};}).filter(d=>d.delta!==0).sort((a,b)=>b.delta-a.delta);
+    const maxG=Math.max(...gains.map(d=>Math.abs(d.delta)),1);
+    pgEl.innerHTML=gains.slice(0,10).map(d=>`<div class="gl-row"><div class="gl-n" style="font-size:10px">${d.name}</div><div class="gl-bw"><div class="gl-b" style="width:${Math.abs(d.delta)/maxG*100}%;background:${d.delta>0?'var(--green)':'var(--red)'}"></div></div><div class="gl-v" style="color:${d.delta>0?'var(--green)':'var(--red)'}">${d.delta>0?'+':''}${d.delta}</div></div>`).join('');
+  } else if(pgEl){pgEl.innerHTML='<div class="empty">No grid data</div>';}
   const flEl=document.getElementById('arch-fl-list');
   if(flEl) flEl.innerHTML=sorted.slice(0,10).map((d,i)=>{const clr='#'+(d.team_colour||'aaaaaa');const fl=flPerDriver[d.driver_number];return`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--line);font-size:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:14px;width:20px;color:${i<3?['var(--gold)','#C8C8C8','#CD7F32'][i]:'var(--text-3)'}">${i+1}</div><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1">${d.last_name||'#'+d.driver_number}</div><div style="font-family:var(--font-mono);color:${i===0?'#a855f7':'var(--text-2)'}">${fmtT(fl)}</div></div>`;}).join('');
   const tyEl=document.getElementById('arch-tyre-list');
