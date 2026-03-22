@@ -543,10 +543,10 @@ option { background:#0d0d2b; }
 /* ══════════════════════════════════════════
    PREDICTOR
 ══════════════════════════════════════════ */
-#page-predictor { flex-direction:column; overflow-y:auto; }
+#page-predictor { flex-direction:column; overflow-y:auto; overflow-x:hidden; }
 #pred-head { padding:16px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; flex-shrink:0; background:rgba(0,0,0,0.3); }
 #pred-head h2 { font-family:var(--font-display); font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
-#pred-body { padding:18px; }
+#pred-body { padding:18px; overflow-y:auto; flex:1; min-height:0; }
 .pred-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
 .pred-c { background:var(--glass-1); border:1px solid var(--line); border-radius:var(--r); padding:18px; }
 .pred-ct { font-family:var(--font-display); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; }
@@ -1304,14 +1304,26 @@ function goto(page) {
   }
   if(page==='standings') setTimeout(renderStdCharts,100);
   if(page==='analysis') setTimeout(renderAnalysis,100);
-  if(page==='live') setTimeout(initLive,200);
+  if(page==='live') {
+    setTimeout(function(){
+      if(CT.loaded){
+        // Force canvas resize and redraw when returning to live tab
+        var cv=document.getElementById('circuit-canvas');
+        if(cv){cv.width=0;cv.height=0;} // force resize on next drawFrame
+        requestAnimationFrame(function(){ drawFrame(CT.curFrame); });
+      } else {
+        initLive();
+      }
+    },100);
+  }
   if(page==='telem') setTimeout(initTelem,200);
   if(page==='predictor') setTimeout(function(){
     populateSelectors();
     var ps=document.getElementById('pred-sel');
     if(ps&&ps.options.length>0&&!ps.value){ps.selectedIndex=0;}
+    // Always call runPredictor - it now handles empty schedule gracefully
     runPredictor();
-  },200);
+  },300);
   if(page==='archives') setTimeout(initArchives,100);
   window.scrollTo(0,0);
 }
@@ -1953,29 +1965,31 @@ async function loadCircuit() {
     CT.bounds={minX:allX[p2],maxX:allX[p98],minY:allY[p2],maxY:allY[p98]};
   }
 
-  // Build frame timeline: sample every 500ms for smooth replay
-  // Use the first driver's timestamps as master clock
-  const masterDrv=Object.keys(CT.locData).find(n=>CT.locData[n].length>100);
+  // Step 1: Build sortedLoc FIRST (needed for frame timeline)
+  CT.sortedLoc={};
+  Object.entries(CT.locData).forEach(([n,pts])=>{
+    const sorted=pts
+      .filter(p=>Math.abs(p.x)>50||Math.abs(p.y)>50)
+      .map(p=>({t:new Date(p.date).getTime(),x:p.x,y:p.y}))
+      .sort((a,b)=>a.t-b.t);
+    if(sorted.length>10) CT.sortedLoc[n]=sorted;
+  });
+  console.log('[APEX] sortedLoc built for',Object.keys(CT.sortedLoc).length,'drivers');
+
+  // Step 2: Build frame timeline from sortedLoc (correct order now)
   CT.frames=[];
-  // Use the driver with the most data as master clock
-  let bestMasterDrv=masterDrv, bestLen=0;
-  Object.entries(CT.sortedLoc).forEach(([n,pts])=>{ if(pts.length>bestLen){bestLen=pts.length;bestMasterDrv=parseInt(n);} });
+  let bestMasterDrv=null, bestLen=0;
+  Object.entries(CT.sortedLoc).forEach(([n,pts])=>{
+    if(pts.length>bestLen){bestLen=pts.length;bestMasterDrv=parseInt(n);}
+  });
+  console.log('[APEX] Master driver:',bestMasterDrv,'with',bestLen,'points');
   if(bestMasterDrv && CT.sortedLoc[bestMasterDrv] && CT.sortedLoc[bestMasterDrv].length>0) {
     const masterPts=CT.sortedLoc[bestMasterDrv];
     const startMs=masterPts[0].t;
     const endMs=masterPts[masterPts.length-1].t;
-    // 300ms frames = smoother replay (~3.3fps, matches OpenF1 ~3.7Hz data)
     for(let t=startMs; t<=endMs; t+=300) CT.frames.push(t);
   }
-
-  // Pre-build sorted arrays for fast binary search (exclude zero coords)
-  CT.sortedLoc={};
-  Object.entries(CT.locData).forEach(([n,pts])=>{
-    CT.sortedLoc[n]=pts
-      .filter(p=>Math.abs(p.x)>50||Math.abs(p.y)>50)
-      .map(p=>({t:new Date(p.date).getTime(),x:p.x,y:p.y}))
-      .sort((a,b)=>a.t-b.t);
-  });
+  console.log('[APEX] Frames built:',CT.frames.length);
 
   // Fetch intervals data for gap display
   const ints=await of1('intervals',`session_key=${skey}`);
@@ -1995,7 +2009,12 @@ async function loadCircuit() {
   }
   buildLapFrameMap();
   buildTower();
-  drawFrame(0);
+  // Use rAF to draw after browser layout settles (canvas may have 0 size immediately)
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      drawFrame(0);
+    });
+  });
   showFlagStream();
   // Update lap of total
   const lotEl=document.getElementById('lap-of-total');
@@ -2361,7 +2380,12 @@ function setSpd(s,btn){CT.speed=s;document.querySelectorAll('.spd-btn').forEach(
 function seekPlay(ev){if(!CT.loaded)return;const bar=document.getElementById('replay-progress'),rect=bar.getBoundingClientRect();CT.curFrame=Math.floor(Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width))*(CT.frames.length-1));drawFrame(CT.curFrame);}
 
 window.addEventListener('resize',()=>{
-  if(document.getElementById('page-live').classList.contains('active')) drawFrame(CT.curFrame);
+  if(document.getElementById('page-live').classList.contains('active')){
+    // Force canvas size reset so it recalculates from parent
+    var cv=document.getElementById('circuit-canvas');
+    if(cv){cv.width=0;cv.height=0;}
+    requestAnimationFrame(function(){ drawFrame(CT.curFrame); });
+  }
 });
 
 /* ═══════════════════════════════════════
@@ -2842,8 +2866,24 @@ function predRow(num,name,color,pct,isPct){
 }
 
 function runMLPredictor(){
-  var sel=document.getElementById('pred-sel');if(!sel||!sel.value)return;
-  var tRound=parseInt(sel.value),tRace=S.schedule.find(function(r){return r.round===tRound;});if(!tRace)return;
+  var sel=document.getElementById('pred-sel');
+  // Ensure pred-sel has options; if not, populate now
+  if(sel&&(!sel.options||sel.options.length===0)){
+    var up=S.schedule.filter(function(r){return r.status==='next'||r.status==='upcoming';});
+    if(up.length) sel.innerHTML=up.map(function(r){return '<option value="'+r.round+'">'+r.flag+' R'+r.round+' '+r.country+'</option>';}).join('');
+  }
+  // Auto-select first option if nothing selected
+  if(sel&&sel.options&&sel.options.length>0&&!sel.value){sel.selectedIndex=0;}
+  // Use selected value, or default to first upcoming round
+  var tRound=sel&&sel.value?parseInt(sel.value):0;
+  if(!tRound){
+    var firstUp=S.schedule.find(function(r){return r.status==='next'||r.status==='upcoming';});
+    if(firstUp) tRound=firstUp.round; else return; // truly no data yet
+  }
+  var tRace=S.schedule.find(function(r){return r.round===tRound;});
+  // If still no race found in schedule, use calendar data directly
+  if(!tRace){tRace=CALENDAR.find(function(r){return r.round===tRound;});if(tRace)tRace={round:tRound,country:tRace.country,flag:tRace.flag,status:'upcoming'};}
+  if(!tRace) return;
   var ct=CIRCUIT_TYPE[tRace.country]||'mixed';
   var feats=DRV_S.map(function(d){
     var res=S.drvRaceResults[d.id]||[],t=TEAMS_S[d.team],clr=t.color;
@@ -3003,6 +3043,10 @@ window.addEventListener('load',()=>{
   buildMap();
   boot().then(()=>{
     populateSelectors();
+    // Auto-run predictor if on predict page when boot completes
+    if(document.getElementById('page-predictor').classList.contains('active')){
+      setTimeout(runPredictor, 100);
+    }
     setInterval(()=>boot(),5*60*1000);
   });
 });
