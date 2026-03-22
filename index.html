@@ -2765,263 +2765,163 @@ async function loadArchRace(skey,round,country,flag,year){
     pgEl.innerHTML=gains.slice(0,10).map(d=>`<div class="gl-row"><div class="gl-n" style="font-size:10px">${d.name}</div><div class="gl-bw"><div class="gl-b" style="width:${Math.abs(d.delta)/maxG*100}%;background:${d.delta>0?'var(--green)':'var(--red)'}"></div></div><div class="gl-v" style="color:${d.delta>0?'var(--green)':'var(--red)'}">${d.delta>0?'+':''}${d.delta}</div></div>`).join('');
   } else if(pgEl){pgEl.innerHTML='<div class="empty">No grid data</div>';}
 
-  // Qualifying Results
+  // Qualifying
   const qualiEl=document.getElementById('arch-quali-results');
-  if(qualiEl){
-    if(qualiResults.length){
-      qualiEl.innerHTML=qualiResults.map(r=>{
-        const pos=parseInt(r.position),clr=TEAMCOL[r.Constructor.name]||'#666';
-        const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
-        const fastest=qualiResults[0]?.Q3,isP=r.Q3&&r.Q3===fastest;
-        return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px">'
-          +'<span class="dt-pos '+pc+'" style="font-size:14px;width:18px">'+pos+'</span>'
-          +'<span style="width:5px;height:5px;border-radius:50%;background:'+clr+';flex-shrink:0"></span>'
-          +'<span style="flex:1;font-weight:500">'+r.Driver.familyName+'</span>'
-          +'<span style="color:var(--text-3);font-size:9px">'+r.Constructor.name.split(' ')[0]+'</span>'
-          +'<span class="mono" style="font-size:9px;'+(isP?'color:#a855f7;font-weight:700':'color:var(--text-3)')+'">'+(r.Q3||r.Q2||r.Q1||'—')+'</span>'
-          +'</div>';
-      }).join('');
-    } else { qualiEl.innerHTML='<div class="empty">Qualifying data unavailable</div>'; }
-  }
+  if(qualiEl){if(qualiResults.length){qualiEl.innerHTML=qualiResults.map(r=>{const pos=parseInt(r.position),clr=TEAMCOL[r.Constructor.name]||'#666';const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';const isP=r.Q3&&r.Q3===qualiResults[0]?.Q3;return'<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px"><span class="dt-pos '+pc+'" style="font-size:14px;width:18px">'+pos+'</span><span style="width:5px;height:5px;border-radius:50%;background:'+clr+';flex-shrink:0"></span><span style="flex:1;font-weight:500">'+r.Driver.familyName+'</span><span style="color:var(--text-3);font-size:9px">'+r.Constructor.name.split(' ')[0]+'</span><span class="mono" style="font-size:9px;'+(isP?'color:#a855f7;font-weight:700':'color:var(--text-3)')+'">'+(r.Q3||r.Q2||r.Q1||'—')+'</span></div>';}).join('');}else{qualiEl.innerHTML='<div class="empty">Qualifying unavailable</div>';}}
 
-  // Podium & Key Stats
+  // Podium
   const podEl=document.getElementById('arch-podium');
-  if(podEl&&jolRace){
-    const p1=jolRace.Results[0],p2=jolRace.Results[1],p3=jolRace.Results[2];
-    const fl=jolRace.Results.find(r=>r.FastestLap&&r.FastestLap.rank==='1');
-    const totalPts=jolRace.Results.reduce((a,r)=>a+parseFloat(r.points),0);
-    const dnfs=jolRace.Results.filter(r=>r.status==='Retired'||r.status==='Did not start').length;
-    const c1=TEAMCOL[p1?.Constructor?.name]||'#666',c2=TEAMCOL[p2?.Constructor?.name]||'#666',c3=TEAMCOL[p3?.Constructor?.name]||'#666';
-    const mkPod=(p,c,medal,mclr)=>'<div style="flex:1;background:var(--glass-1);border:1px solid '+c+';border-radius:var(--r-sm);padding:9px 6px;text-align:center">'
-      +'<div style="font-size:16px;margin-bottom:3px">'+medal+'</div>'
-      +'<div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:'+c+'">'+(p?.Driver?.familyName||'—')+'</div>'
-      +'<div style="font-size:8px;color:var(--text-3)">'+(p?.Constructor?.name?.split(' ')[0]||'')+'</div>'
-      +'<div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:'+mclr+';margin-top:3px">'+(p?.points||'')+'pts</div>'
-      +'</div>';
-    podEl.innerHTML='<div style="display:flex;gap:6px;margin-bottom:10px">'
-      +mkPod(p1,c1,'🥇','var(--gold)')+mkPod(p2,c2,'🥈','#C8C8C8')+mkPod(p3,c3,'🥉','#CD7F32')
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">'
-        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">FASTEST LAP</div><div style="font-size:10px;font-weight:700;color:#a855f7;margin-top:2px">'+(fl?fl.Driver.familyName+' ⚡':'—')+'</div></div>'
-        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">TOTAL PTS</div><div style="font-size:10px;font-weight:700;margin-top:2px">'+totalPts+'</div></div>'
-        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">DNFs</div><div style="font-size:10px;font-weight:700;color:var(--red);margin-top:2px">'+dnfs+'</div></div>'
-        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">POLE</div><div style="font-size:10px;font-weight:700;margin-top:2px">'+(qualiResults[0]?.Driver?.familyName||'—')+'</div></div>'
-      +'</div>';
-  } else if(podEl){podEl.innerHTML='<div class="empty">Results loading…</div>';}
+  if(podEl&&jolRace){const p1=jolRace.Results[0],p2=jolRace.Results[1],p3=jolRace.Results[2],fl=jolRace.Results.find(r=>r.FastestLap&&r.FastestLap.rank==='1'),totalPts=jolRace.Results.reduce((a,r)=>a+parseFloat(r.points),0),dnfs=jolRace.Results.filter(r=>r.status==='Retired'||r.status==='Did not start').length;const c1=TEAMCOL[p1?.Constructor?.name]||'#666',c2=TEAMCOL[p2?.Constructor?.name]||'#666',c3=TEAMCOL[p3?.Constructor?.name]||'#666';podEl.innerHTML='<div style="display:flex;gap:6px;margin-bottom:10px">'+[{p:p1,c:c1,m:'🥇',mc:'var(--gold)',mc2:'gold'},{p:p2,c:c2,m:'🥈',mc:'#C8C8C8',mc2:'silver'},{p:p3,c:c3,m:'🥉',mc:'#CD7F32',mc2:'bronze'}].map(x=>'<div style="flex:1;background:var(--glass-1);border:1px solid '+x.c+';border-radius:var(--r-sm);padding:8px 6px;text-align:center"><div style="font-size:15px">'+x.m+'</div><div style="font-family:var(--font-display);font-size:12px;font-weight:800;color:'+x.c+'">'+(x.p?.Driver?.familyName||'—')+'</div><div style="font-size:8px;color:var(--text-3)">'+(x.p?.Constructor?.name?.split(' ')[0]||'')+'</div><div style="font-size:11px;font-weight:700;color:'+x.mc+';margin-top:2px">'+(x.p?.points||'')+'pts</div></div>').join('')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">'+'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px"><div style="font-size:8px;color:var(--text-3)">FASTEST LAP</div><div style="font-size:10px;font-weight:700;color:#a855f7">'+(fl?fl.Driver.familyName+' ⚡':'—')+'</div></div>'+'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px"><div style="font-size:8px;color:var(--text-3)">TOTAL PTS</div><div style="font-size:10px;font-weight:700">'+totalPts+'</div></div>'+'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px"><div style="font-size:8px;color:var(--text-3)">DNFs</div><div style="font-size:10px;font-weight:700;color:var(--red)">'+dnfs+'</div></div>'+'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px"><div style="font-size:8px;color:var(--text-3)">POLE</div><div style="font-size:10px;font-weight:700">'+(qualiResults[0]?.Driver?.familyName||'—')+'</div></div>'+'</div>';} else if(podEl){podEl.innerHTML='<div class="empty">Loading…</div>';}
   const flEl=document.getElementById('arch-fl-list');
   if(flEl) flEl.innerHTML=sorted.slice(0,10).map((d,i)=>{const clr='#'+(d.team_colour||'aaaaaa');const fl=flPerDriver[d.driver_number];return`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--line);font-size:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:14px;width:20px;color:${i<3?['var(--gold)','#C8C8C8','#CD7F32'][i]:'var(--text-3)'}">${i+1}</div><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1">${d.last_name||'#'+d.driver_number}</div><div style="font-family:var(--font-mono);color:${i===0?'#a855f7':'var(--text-2)'}">${fmtT(fl)}</div></div>`;}).join('');
   const tyEl=document.getElementById('arch-tyre-list');
   if(tyEl) tyEl.innerHTML=drivers.slice(0,10).map(d=>{const clr='#'+(d.team_colour||'aaaaaa');const ds=allStints.filter(s=>s.driver_number===d.driver_number);const tyres=ds.map(s=>{const tclr={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'}[s.compound]||'#EEEEEE';const tcol=['#FFEE00','#EEEEEE'].includes(tclr)?'#000':'#fff';return`<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:${tclr};color:${tcol};font-size:6px;font-weight:800;margin-right:2px">${(s.compound||'H').charAt(0)}</span>`;}).join('');return`<div style="display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--line);font-size:9px"><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1;font-weight:500">${d.last_name||'#'+d.driver_number}</div><div>${tyres||'—'}</div></div>`;}).join('');
   const rcEl=document.getElementById('arch-rc');
   if(rcEl){
-    const meaningful=raceCtrl.filter(m=>{
-      if(!m) return false;
-      if(m.category==='SafetyCar') return true;
-      if(m.flag&&m.flag!=='CLEAR'&&m.flag!=='GREEN') return true;
-      if(m.message&&(m.message.includes('INCIDENT')||m.message.includes('INVESTIGATION')||m.message.includes('PENALTY')||m.message.includes('VSC')||m.message.includes('SAFETY CAR')||m.message.includes('RED FLAG')||m.message.includes('CHEQUERED')||m.message.includes('DRS ENABLED')||m.message.includes('TRACK LIMITS')||m.message.includes('SESSION STARTED'))) return true;
-      return false;
-    });
+    const meaningful=raceCtrl.filter(m=>{if(!m)return false;if(m.category==='SafetyCar')return true;if(m.flag&&m.flag!=='CLEAR'&&m.flag!=='GREEN')return true;if(m.message&&(m.message.includes('INCIDENT')||m.message.includes('INVESTIGATION')||m.message.includes('PENALTY')||m.message.includes('VSC')||m.message.includes('CHEQUERED')||m.message.includes('DRS ENABLED')||m.message.includes('TRACK LIMITS')))return true;return false;});
     const showMsgs=meaningful.length?meaningful:raceCtrl.slice(0,15);
-    rcEl.innerHTML=showMsgs.slice(0,25).map(m=>{
-      const clr=m.flag==='GREEN'?'var(--green)':(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'#ffc800':m.category==='SafetyCar'?'var(--orange)':(m.flag==='RED'||m.flag==='BLUE')?'var(--red)':'var(--text-2)';
-      const icon=m.flag==='GREEN'?'🟢':m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW'?'🟡':m.category==='SafetyCar'?'🟠':m.flag==='RED'?'🔴':m.flag==='CHEQUERED'?'🏁':m.flag==='BLUE'?'🔵':'📋';
-      const lap=m.lap_number?'L'+m.lap_number+' · ':'';
-      return '<div style="display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px;align-items:flex-start">'+'<span style="flex-shrink:0">'+icon+'</span>'+'<span style="color:var(--text-3);font-family:var(--font-mono);font-size:9px;min-width:56px;flex-shrink:0">'+lap+(m.date||'').slice(11,19)+'</span>'+'<span style="color:'+clr+';font-weight:600;flex:1;line-height:1.4">'+(m.message||m.flag||m.category||'—')+'</span>'+'</div>';
-    }).join('')+(raceCtrl.length===0?'<div class="empty" style="font-size:10px">No race control data</div>':'');
+    rcEl.innerHTML=showMsgs.slice(0,25).map(m=>{const clr=(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'#ffc800':m.category==='SafetyCar'?'var(--orange)':(m.flag==='RED')?'var(--red)':'var(--text-2)';const icon=(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'🟡':m.category==='SafetyCar'?'🟠':m.flag==='RED'?'🔴':m.flag==='CHEQUERED'?'🏁':'📋';const lap=m.lap_number?'L'+m.lap_number+' · ':'';return'<div style="display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px">'+'<span>'+icon+'</span>'+'<span style="color:var(--text-3);font-family:var(--font-mono);font-size:9px;min-width:56px">'+lap+(m.date||'').slice(11,19)+'</span>'+'<span style="color:'+clr+';font-weight:600;flex:1">'+(m.message||m.flag||m.category||'—')+'</span>'+'</div>';}).join('')+(raceCtrl.length===0?'<div class="empty">No race control data</div>':'');
   }
   killChart('arch');
   const alc=document.getElementById('arch-laps-chart');
   if(alc&&typeof Chart!=='undefined'){CHARTS.arch=new Chart(alc.getContext('2d'),{type:'bar',data:{labels:drivers.slice(0,12).map(d=>d.name_acronym||'#'+d.driver_number),datasets:[{label:'Valid laps',data:drivers.slice(0,12).map(d=>allLaps.filter(l=>l.driver_number===d.driver_number&&l.lap_duration&&l.lap_duration>60).length),backgroundColor:drivers.slice(0,12).map(d=>'#'+(d.team_colour||'aaaaaa')+'99'),borderColor:drivers.slice(0,12).map(d=>'#'+(d.team_colour||'aaaaaa')),borderWidth:1.5,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gc},ticks:{color:tc,font:{size:9}}},x:{grid:{display:false},ticks:{color:tc,font:{size:9}}}}}});}
 }
 
-/* ═══════════════════════════════════════
-   ML RACE PREDICTOR
-   Multi-feature gradient-boosted model
-   Features: 2026 form, 2025 season perf,
-   constructor momentum, circuit type fit,
-   qualifying pace proxy, championship pressure,
-   racecraft (positions gained), reliability
-═══════════════════════════════════════ */
+/* // ===== ML PREDICTOR v2 =====
+const HIST_DATA={verstappen:{w23:19,w24:9,w25:3,cW:{street:2,power:8,technical:7,mixed:12},ag:2.1,dnf:0.04},norris:{w23:0,w24:6,w25:14,cW:{street:1,power:5,technical:4,mixed:8},ag:1.8,dnf:0.04},piastri:{w23:0,w24:2,w25:6,cW:{street:0,power:2,technical:3,mixed:4},ag:3.2,dnf:0.04},leclerc:{w23:1,w24:3,w25:2,cW:{street:2,power:3,technical:1,mixed:2},ag:4.1,dnf:0.12},russell:{w23:0,w24:2,w25:4,cW:{street:1,power:2,technical:1,mixed:2},ag:5.2,dnf:0.04},hamilton:{w23:0,w24:2,w25:2,cW:{street:1,power:2,technical:1,mixed:1},ag:5.8,dnf:0.04},antonelli:{w23:0,w24:0,w25:0,cW:{street:0,power:0,technical:0,mixed:1},ag:8.1,dnf:0.08},sainz:{w23:1,w24:1,w25:1,cW:{street:1,power:2,technical:0,mixed:1},ag:7.2,dnf:0.04},alonso:{w23:1,w24:0,w25:0,cW:{street:0,power:1,technical:1,mixed:0},ag:11.2,dnf:0.08},default:{w23:0,w24:0,w25:0,cW:{street:0,power:0,technical:0,mixed:0},ag:14,dnf:0.10}};
+const TEAM_MOM_2026={mercedes:{pts:98,trend:'surging',rb:1.20},ferrari:{pts:67,trend:'strong',rb:1.10},haas:{pts:17,trend:'rising',rb:1.08},mclaren:{pts:18,trend:'solid',rb:0.88},redbull:{pts:12,trend:'fading',rb:0.72},rb:{pts:12,trend:'neutral',rb:0.95},williams:{pts:0,trend:'neutral',rb:0.92},alpine:{pts:10,trend:'rising',rb:1.00},aston:{pts:0,trend:'fading',rb:0.90},audi:{pts:2,trend:'learning',rb:0.85},cadillac:{pts:0,trend:'unknown',rb:0.80}};
+const CIRCUIT_TYPE={Australia:'mixed',China:'mixed',Japan:'technical',Bahrain:'technical','Saudi Arabia':'power','United States':'mixed',Canada:'power',Monaco:'street',Spain:'technical',Austria:'power','United Kingdom':'power',Belgium:'power',Hungary:'technical',Netherlands:'technical',Italy:'power',Azerbaijan:'street',Singapore:'street',Mexico:'technical',Brazil:'mixed',Qatar:'mixed','United Arab Emirates':'technical','Las Vegas':'power'};
 
-// Historical win rates by driver + circuit type (from 2023-2025 data)
-const HIST_WINS = {
-  // 2025: McLaren dominated (Norris 14W, Piastri 6W, Verstappen 3W, others 1W each)
-  // 2024: Verstappen 9W, Norris 6W, Leclerc 3W, Piastri 2W, others 1-2W
-  // 2023: Verstappen 19W, Sainz 1W, Alonso 1W, Perez 1W, Russell 1W
-  verstappen: {street:2,power:8,technical:7,mixed:12,total:27},
-  norris:     {street:1,power:5,technical:4,mixed:8, total:18},
-  piastri:    {street:0,power:2,technical:3,mixed:4, total:9},
-  russell:    {street:1,power:2,technical:1,mixed:2, total:6},
-  leclerc:    {street:2,power:3,technical:1,mixed:2, total:8},
-  hamilton:   {street:1,power:2,technical:1,mixed:1, total:5},
-  sainz:      {street:1,power:2,technical:0,mixed:1, total:4},
-  alonso:     {street:0,power:1,technical:1,mixed:0, total:2},
-  antonelli:  {street:0,power:1,technical:0,mixed:1, total:1},
-};
-
-// Constructor momentum scores (based on 2025 full season + 2026 start)
-const TEAM_MOMENTUM = {
-  mclaren:  {score:95, trend:'peak',    wins2025:14, wins2026:0},
-  mercedes: {score:82, trend:'strong',  wins2025:4,  wins2026:2},
-  ferrari:  {score:74, trend:'steady',  wins2025:4,  wins2026:0},
-  redbull:  {score:70, trend:'fading',  wins2025:3,  wins2026:0},
-  haas:     {score:52, trend:'rising',  wins2025:0,  wins2026:0},
-  williams: {score:45, trend:'steady',  wins2025:1,  wins2026:0},
-  alpine:   {score:40, trend:'neutral', wins2025:0,  wins2026:0},
-  aston:    {score:38, trend:'fading',  wins2025:0,  wins2026:0},
-  rb:       {score:35, trend:'neutral', wins2025:0,  wins2026:0},
-  audi:     {score:32, trend:'neutral', wins2025:0,  wins2026:0},
-  cadillac: {score:28, trend:'unknown', wins2025:0,  wins2026:0},
-};
-
-// Circuit type classification
-const CIRCUIT_TYPE = {
-  'Australia':'mixed','China':'mixed','Japan':'technical','Bahrain':'technical',
-  'Saudi Arabia':'power','United States':'mixed','Canada':'power','Monaco':'street',
-  'Spain':'technical','Austria':'power','United Kingdom':'power','Belgium':'power',
-  'Hungary':'technical','Netherlands':'technical','Italy':'power','Azerbaijan':'street',
-  'Singapore':'street','Mexico':'technical','Brazil':'mixed','Qatar':'mixed',
-  'United Arab Emirates':'technical','Las Vegas':'power','Barcelona':'technical'
-};
-
-/* ═══════════════════════════════════════
-   APEX ML PREDICTOR v2
-   8-feature weighted model with:
-   - 2026 form (exponential recency decay)  
-   - Constructor 2026 points per race
-   - Historical circuit type win rates (discounted for new regs)
-   - Qualifying/grid pace proxy
-   - Reliability (combined 2025+2026)
-   - Racecraft (avg positions gained)
-   - Championship pressure curve
-   - Team regulation momentum trend
-═══════════════════════════════════════ */
-
-// Per-driver historical data (2023-2025)
-const HIST_DATA = {
-  verstappen:{wins2023:19,wins2024:9,wins2025:3,circuitWins:{street:2,power:8,technical:7,mixed:12},poles2025:6,podiums2025:12,avgGrid2025:2.1,dnfRate2025:0.04,dnfRate2024:0.08},
-  norris:    {wins2023:0, wins2024:6,wins2025:14,circuitWins:{street:1,power:5,technical:4,mixed:8}, poles2025:8,podiums2025:21,avgGrid2025:1.8,dnfRate2025:0.04,dnfRate2024:0.05},
-  piastri:   {wins2023:0, wins2024:2,wins2025:6, circuitWins:{street:0,power:2,technical:3,mixed:4}, poles2025:3,podiums2025:18,avgGrid2025:3.2,dnfRate2025:0.04,dnfRate2024:0.05},
-  leclerc:   {wins2023:1, wins2024:3,wins2025:2, circuitWins:{street:2,power:3,technical:1,mixed:2}, poles2025:5,podiums2025:10,avgGrid2025:4.1,dnfRate2025:0.12,dnfRate2024:0.10},
-  russell:   {wins2023:0, wins2024:2,wins2025:4, circuitWins:{street:1,power:2,technical:1,mixed:2}, poles2025:4,podiums2025:12,avgGrid2025:5.2,dnfRate2025:0.04,dnfRate2024:0.04},
-  hamilton:  {wins2023:0, wins2024:2,wins2025:2, circuitWins:{street:1,power:2,technical:1,mixed:1}, poles2025:2,podiums2025:8, avgGrid2025:5.8,dnfRate2025:0.04,dnfRate2024:0.04},
-  antonelli: {wins2023:0, wins2024:0,wins2025:0, circuitWins:{street:0,power:0,technical:0,mixed:1}, poles2025:0,podiums2025:2, avgGrid2025:8.1,dnfRate2025:0.08,dnfRate2024:0.00},
-  sainz:     {wins2023:1, wins2024:1,wins2025:1, circuitWins:{street:1,power:2,technical:0,mixed:1}, poles2025:2,podiums2025:6, avgGrid2025:7.2,dnfRate2025:0.04,dnfRate2024:0.04},
-  alonso:    {wins2023:1, wins2024:0,wins2025:0, circuitWins:{street:0,power:1,technical:1,mixed:0}, poles2025:0,podiums2025:1, avgGrid2025:11.2,dnfRate2025:0.08,dnfRate2024:0.12},
-  default:   {wins2023:0, wins2024:0,wins2025:0, circuitWins:{street:0,power:0,technical:0,mixed:0}, poles2025:0,podiums2025:0, avgGrid2025:14,  dnfRate2025:0.10,dnfRate2024:0.10}
-};
-
-// Team 2026 regulation momentum
-const TEAM_MOM_2026 = {
-  mercedes:{score:95,pts2026:98,trend:'surging', regBenefit:1.20},
-  ferrari: {score:80,pts2026:67,trend:'strong',  regBenefit:1.10},
-  haas:    {score:65,pts2026:17,trend:'rising',  regBenefit:1.08},
-  mclaren: {score:75,pts2026:18,trend:'solid',   regBenefit:0.88},
-  redbull: {score:58,pts2026:12,trend:'fading',  regBenefit:0.72},
-  rb:      {score:52,pts2026:12,trend:'neutral', regBenefit:0.95},
-  williams:{score:48,pts2026:0, trend:'neutral', regBenefit:0.92},
-  alpine:  {score:45,pts2026:10,trend:'rising',  regBenefit:1.00},
-  aston:   {score:40,pts2026:0, trend:'fading',  regBenefit:0.90},
-  audi:    {score:38,pts2026:2, trend:'learning',regBenefit:0.85},
-  cadillac:{score:30,pts2026:0, trend:'unknown', regBenefit:0.80},
-};
-
-function runMLPredictor() {
-  const sel=document.getElementById('pred-sel'); if(!sel||!sel.value) return;
-  const tRound=parseInt(sel.value);
-  const tRace=S.schedule.find(r=>r.round===tRound); if(!tRace) return;
-  const circType=CIRCUIT_TYPE[tRace.country]||'mixed';
-
-  const features=DRV_S.map(d=>{
-    const res=S.drvRaceResults[d.id]||[], t=TEAMS_S[d.team], clr=t.color;
-    const tm=TEAM_MOM_2026[d.team]||{score:35,pts2026:0,trend:'neutral',regBenefit:0.85};
-    const hd=HIST_DATA[d.id]||HIST_DATA.default;
-    const std=S.wdc.find(s=>NUM_ID[parseInt(s.Driver.permanentNumber)]===d.id);
-    const tStd=S.wcc.find(s=>s.Constructor.name.includes(t.name.split(' ')[0])||s.Constructor.name===t.name);
-    const champPos=std?parseInt(std.position):20, champPts=std?parseFloat(std.points):0;
-    const constrPos=tStd?parseInt(tStd.position):10, constrPts=tStd?parseFloat(tStd.points):0;
-
-    // F1: 2026 form — exponential recency decay
-    const recent3=res.slice(-3);
-    const form2026=recent3.reduce((acc,r,i)=>{
-      const w=Math.pow(2.5,i);
-      const pts=r.pos===1?30:r.pos===2?22:r.pos===3?16:r.pos<=5?12:r.pos<=8?8:r.pos<=10?4:r.pos<=15?1:0;
-      return acc+(pts+(r.status==='Retired'?-12:0))*w;
-    },0);
-    const form2026Norm=Math.min(100,form2026/Math.max(recent3.length*30*6.25,1)*100);
-
-    // F2: Constructor 2026 actual points rate
-    const constrPtsPerRace=S.completedRounds>0?constrPts/S.completedRounds:0;
-    const maxCPPR=S.completedRounds>0?(S.wcc[0]?parseFloat(S.wcc[0].points)/S.completedRounds:49):49;
-    const constrScore=(constrPtsPerRace/Math.max(maxCPPR,1))*100*tm.regBenefit;
-
-    // F3: Historical circuit type (discounted 70% for new regs)
-    const histWins=(hd.circuitWins[circType]||0)*4+((hd.wins2023+hd.wins2024+hd.wins2025)*0.5);
-    const histDiscounted=histWins*0.30;
-
-    // F4: Grid/qualifying pace
-    const actualGrids=res.map(r=>r.grid||12).filter(g=>g>0);
-    const avgGrid=actualGrids.length?actualGrids.reduce((a,b)=>a+b,0)/actualGrids.length:hd.avgGrid2025;
-    const gridScore=Math.max(0,(22-avgGrid)/21*60);
-
-    // F5: Reliability
-    const dnf2026=res.length?res.filter(r=>r.status==='Retired').length/res.length:hd.dnfRate2025;
-    const combinedDnf=res.length>=2?(dnf2026*0.6+hd.dnfRate2025*0.4):hd.dnfRate2025;
-    const reliabilityScore=Math.max(0,(1-combinedDnf*4)*25);
-
-    // F6: Racecraft
-    const finRaces=res.filter(r=>r.grid>0&&r.status!=='Did not start');
-    const avgGain=finRaces.length?finRaces.reduce((a,r)=>a+(r.grid-r.pos),0)/finRaces.length:0;
-    const racecraftScore=Math.max(-15,Math.min(25,avgGain*5));
-
-    // F7: Pressure curve
-    const pressureMult=champPos===1?0.94:champPos<=3?1.12:champPos<=5?1.08:champPos<=8?1.02:0.96;
-
-    // F8: Team trend
-    const trendMult={surging:1.15,strong:1.07,rising:1.05,solid:1.0,neutral:1.0,fading:0.88,learning:0.82,unknown:0.80}[tm.trend]||1.0;
-
-    const rawScore=(form2026Norm*0.38+constrScore*0.28+gridScore*0.12+histDiscounted*0.08+reliabilityScore*0.07+racecraftScore*0.07)*pressureMult*trendMult;
-    return{id:d.id,sur:d.sur,num:d.num,team:d.team,color:clr,raw:Math.max(0.5,rawScore),
-      form2026Norm,constrScore,histDiscounted,gridScore,reliabilityScore,racecraftScore,
-      pressureMult,trendMult,champPos,champPts,constrPos,constrPts,avgGrid,dnfRate:combinedDnf,tm,hd,res};
-  });
-
-  features.sort((a,b)=>b.raw-a.raw);
-  const maxR=features[0].raw;
-  const T=Math.max(6,12-S.completedRounds*0.5); // adaptive temperature
-  const expS=features.map(f=>Math.exp((f.raw-maxR)/T));
-  const sumE=expS.reduce((a,b)=>a+b,0);
-  const wP=expS.map(e=>Math.min(99.9,e/sumE*100));
-  const podP=features.map((_,i)=>Math.min(99,wP[i]*2.2+wP[Math.min(i+1,features.length-1)]*0.3));
-  const w=features[0];
-
-  setHtml('pred-banner',`<div class="pred-banner"><div><div class="pb-label">ML v2 · ${circType.toUpperCase()} · R${tRound} · T=${T.toFixed(1)}</div><div class="pb-name" style="color:${w.color}">${w.sur}</div><div class="pb-conf">${wP[0].toFixed(1)}% win probability</div><div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap"><span style="font-size:9px;color:var(--text-3)">Constructor P${w.constrPos} · ${w.constrPts}pts</span><span style="font-size:9px;color:var(--text-3)">Driver P${w.champPos} · ${w.champPts}pts</span><span style="font-size:9px;color:${w.tm.trend==='surging'?'var(--green)':w.tm.trend==='fading'?'var(--red)':'var(--text-3)'}">${w.tm.trend.toUpperCase()}</span><span style="font-size:9px;color:var(--text-3)">DNF risk ${(w.dnfRate*100).toFixed(0)}%</span></div></div><div style="font-size:42px;margin-left:auto">🏆</div></div>`);
-
-  setHtml('pred-wins',features.slice(0,12).map((f,i)=>`<div class="pred-row"><div class="pred-rk" style="${i<3?'color:'+['var(--gold)','#C8C8C8','#CD7F32'][i]:''}">${i+1}</div><div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div class="pred-nm">${f.sur}</div><div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${wP[i]}%;height:100%;background:${f.color};border-radius:2px"></div></div><div class="pred-pct" style="color:${f.color}">${wP[i].toFixed(1)}%</div></div>`).join(''));
-  setHtml('pred-pods',features.slice(0,12).map((f,i)=>`<div class="pred-row"><div class="pred-rk">${i+1}</div><div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div class="pred-nm">${f.sur}</div><div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${Math.min(podP[i],99)}%;height:100%;background:${f.color};border-radius:2px"></div></div><div class="pred-pct" style="color:${f.color}">${podP[i].toFixed(0)}%</div></div>`).join(''));
-
-  setHtml('pred-form',features.slice(0,10).map(f=>{
-    const last3=f.res.slice(-3);
-    const dots=last3.map(r=>{const c=r.pos===1?'var(--gold)':r.pos<=3?'var(--green)':r.pos<=10?f.color+'99':r.status==='Retired'?'var(--red)':'rgba(255,255,255,0.07)';return`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:3px;background:${c};font-size:8px;font-weight:800;color:${r.pos<=3?'#000':'#fff'};margin-right:3px">${r.status==='Retired'?'R':'P'+r.pos}</span>`;}).join('');
-    const ti=f.tm.trend==='surging'?'🔥':f.tm.trend==='strong'?'⚡':f.tm.trend==='rising'?'📈':f.tm.trend==='fading'?'📉':'➡';
-    return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--line);font-size:10px"><div style="width:6px;height:6px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div style="width:68px;font-weight:600">${f.sur}</div><div>${dots||'<span style="color:var(--text-3);font-size:9px">No data</span>'}</div><div style="margin-left:auto;font-size:9px;display:flex;align-items:center;gap:4px">${ti} <span style="color:var(--text-3)">${f.avgGrid.toFixed(1)}</span></div></div>`;
-  }).join(''));
-
-  setHtml('pred-factors',`<div style="font-size:9px;color:var(--text-3);margin-bottom:8px">Score breakdown for <span style="color:${w.color}">${w.sur}</span> (raw ${w.raw.toFixed(1)})</div>${
-    [{l:'2026 Form (38%)',v:w.form2026Norm.toFixed(1),pct:w.form2026Norm},{l:'Constructor 2026 (28%)',v:w.constrScore.toFixed(1),pct:w.constrScore},{l:'Grid Pace (12%)',v:w.gridScore.toFixed(1),pct:w.gridScore/60*100},{l:'Historical Fit (8%)',v:w.histDiscounted.toFixed(1),pct:Math.min(100,w.histDiscounted/30*100)},{l:'Reliability (7%)',v:w.reliabilityScore.toFixed(1),pct:w.reliabilityScore/25*100},{l:'Racecraft (7%)',v:(w.racecraftScore>0?'+':'')+w.racecraftScore.toFixed(1),pct:(w.racecraftScore+15)/40*100},{l:'Pressure ×',v:'×'+w.pressureMult.toFixed(2),pct:(w.pressureMult-0.9)/0.25*100},{l:'Team Trend ×',v:'×'+w.trendMult.toFixed(2),pct:(w.trendMult-0.8)/0.4*100}].map(f=>`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span style="color:var(--text-3)">${f.l}</span><span style="font-family:var(--font-mono);font-weight:700">${f.v}</span></div><div style="height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${Math.max(0,Math.min(100,f.pct))}%;height:100%;background:${w.color};border-radius:2px"></div></div></div>`).join('')
-  }`);
-
-  const gainData=DRV_S.map(d=>{const r=S.drvRaceResults[d.id]||[];if(!r.length)return null;const ag=r.reduce((a,x)=>a+(x.grid?x.grid-x.pos:0),0)/r.length;return{sur:d.sur,color:TEAMS_S[d.team].color,ag};}).filter(Boolean).sort((a,b)=>b.ag-a.ag).slice(0,12);
-  const mg=Math.max(...gainData.map(d=>Math.abs(d.ag)),1);
-  setHtml('pred-gains',gainData.map(d=>`<div class="gl-row"><div class="gl-n">${d.sur}</div><div class="gl-bw"><div class="gl-b" style="width:${Math.abs(d.ag)/mg*100}%;background:${d.ag>0?'var(--green)':'var(--red)'}"></div></div><div class="gl-v" style="color:${d.ag>0?'var(--green)':'var(--red)'}">${d.ag>0?'+':''}${d.ag.toFixed(1)}</div></div>`).join(''));
-
-  const strats={street:['Safety car probability VERY HIGH','Track position critical — undercut difficult','Ferrari & Mercedes historically strong','Grid position outweighs race pace'],power:['DRS decisive — qualifying critical','McLaren & Mercedes engine advantage','1-stop Hard optimal','Overtaking viable on main straight'],technical:['High tyre deg — 2-stop viable','Aero efficiency key in slow corners','Undercut/overcut both valid','Red Bull & McLaren aero strength'],mixed:['1-stop most likely: Medium→Hard','Weather adds uncertainty','DRS available — overtaking possible','Track evolution matters']};
-  const s=strats[circType]||strats.mixed;
-  setHtml('pred-strat',`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)">${circType.toUpperCase()} CIRCUIT</div><div class="tag" style="font-size:8px">T=${T.toFixed(1)} · ${S.completedRounds} races done</div></div>${s.map(b=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px;color:var(--text-2)"><span style="color:var(--red);flex-shrink:0">›</span>${b}</div>`).join('')}<div style="margin-top:12px;padding:10px;background:var(--glass-1);border-radius:var(--r-sm);border:1px solid var(--line)"><div style="font-size:8px;color:var(--text-3);letter-spacing:1px;margin-bottom:6px">2026 TEAM MOMENTUM</div>${Object.entries(TEAM_MOM_2026).slice(0,7).map(([tid,tm])=>{const t2=TEAMS_S[tid];if(!t2)return'';const ti2=tm.trend==='surging'?'🔥':tm.trend==='strong'?'⚡':tm.trend==='rising'?'📈':tm.trend==='fading'?'📉':'➡';return`<div style="display:flex;align-items:center;gap:7px;font-size:10px;padding:2px 0"><div style="width:5px;height:5px;border-radius:50%;background:${t2.color}"></div><div style="flex:1">${t2.name}</div><span>${ti2}</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--text-3)">${tm.pts2026}pts</span></div>`;}).join('')}</div>`);
+function predRow(num,name,color,pct,isPct){
+  return '<div class="pred-row">'
+    +'<div class="pred-rk" style="'+(num<=3?'color:'+['var(--gold)','#C8C8C8','#CD7F32'][num-1]:'')+'">'+num+'</div>'
+    +'<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'
+    +'<div class="pred-nm">'+name+'</div>'
+    +'<div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden">'
+      +'<div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+color+'"></div>'
+    +'</div>'
+    +'<div class="pred-pct" style="color:'+color+'">'+pct.toFixed(isPct?1:0)+'%</div>'
+  +'</div>';
 }
 
-// Alias
+function runMLPredictor(){
+  var sel=document.getElementById('pred-sel');if(!sel||!sel.value)return;
+  var tRound=parseInt(sel.value),tRace=S.schedule.find(function(r){return r.round===tRound;});if(!tRace)return;
+  var ct=CIRCUIT_TYPE[tRace.country]||'mixed';
+  var feats=DRV_S.map(function(d){
+    var res=S.drvRaceResults[d.id]||[],t=TEAMS_S[d.team],clr=t.color;
+    var tm=TEAM_MOM_2026[d.team]||{pts:0,trend:'neutral',rb:0.85};
+    var hd=HIST_DATA[d.id]||HIST_DATA.default;
+    var std=S.wdc.find(function(s){return NUM_ID[parseInt(s.Driver.permanentNumber)]===d.id;});
+    var tStd=S.wcc.find(function(s){return s.Constructor.name===t.name||s.Constructor.name.includes(t.name.split(' ')[0]);});
+    var cPos=std?parseInt(std.position):20, cPts=std?parseFloat(std.points):0;
+    var tPos=tStd?parseInt(tStd.position):10, tPts=tStd?parseFloat(tStd.points):0;
+    var r3=res.slice(-3);
+    var form=r3.reduce(function(acc,r,i){var w=Math.pow(2.5,i),p=r.pos===1?30:r.pos===2?22:r.pos===3?16:r.pos<=5?12:r.pos<=8?8:r.pos<=10?4:1;return acc+(p+(r.status==='Retired'?-12:0))*w;},0);
+    var formN=Math.min(100,form/Math.max(r3.length*30*6.25,1)*100);
+    var cPPR=S.completedRounds>0?tPts/S.completedRounds:0;
+    var maxCPPR=S.completedRounds>0?(S.wcc[0]?parseFloat(S.wcc[0].points)/S.completedRounds:49):49;
+    var constrS=(cPPR/Math.max(maxCPPR,1))*100*tm.rb;
+    var hist=((hd.cW[ct]||0)*4+(hd.w23+hd.w24+hd.w25)*0.5)*0.30;
+    var ag2=res.map(function(r){return r.grid||12;}).filter(function(g){return g>0;});
+    var avgG=ag2.length?ag2.reduce(function(a,b){return a+b;},0)/ag2.length:hd.ag;
+    var gridS=Math.max(0,(22-avgG)/21*60);
+    var dnf2=res.length?res.filter(function(r){return r.status==='Retired';}).length/res.length:hd.dnf;
+    var relS=Math.max(0,(1-(res.length>=2?dnf2*0.6+hd.dnf*0.4:hd.dnf)*4)*25);
+    var fin=res.filter(function(r){return r.grid>0&&r.status!=='Did not start';});
+    var rcS=Math.max(-15,Math.min(25,(fin.length?fin.reduce(function(a,r){return a+(r.grid-r.pos);},0)/fin.length:0)*5));
+    var pM=cPos===1?0.94:cPos<=3?1.12:cPos<=5?1.08:cPos<=8?1.02:0.96;
+    var tM={surging:1.15,strong:1.07,rising:1.05,solid:1.0,neutral:1.0,fading:0.88,learning:0.82,unknown:0.80}[tm.trend]||1.0;
+    var raw=Math.max(0.5,(formN*0.38+constrS*0.28+gridS*0.12+hist*0.08+relS*0.07+rcS*0.07)*pM*tM);
+    return{id:d.id,sur:d.sur,color:clr,raw:raw,formN:formN,constrS:constrS,hist:hist,gridS:gridS,relS:relS,rcS:rcS,pM:pM,tM:tM,cPos:cPos,cPts:cPts,tPos:tPos,tPts:tPts,avgG:avgG,tm:tm,hd:hd,res:res};
+  });
+  feats.sort(function(a,b){return b.raw-a.raw;});
+  var maxR=feats[0].raw, T=Math.max(6,12-S.completedRounds*0.5);
+  var expS=feats.map(function(f){return Math.exp((f.raw-maxR)/T);});
+  var sumE=expS.reduce(function(a,b){return a+b;},0);
+  var wP=expS.map(function(e){return Math.min(99.9,e/sumE*100);});
+  var podP=feats.map(function(_,i){return Math.min(99,wP[i]*2.2+(wP[Math.min(i+1,feats.length-1)]||0)*0.3);});
+  var w=feats[0];
+  var trendClr=w.tm.trend==='surging'?'var(--green)':w.tm.trend==='fading'?'var(--red)':'var(--text-3)';
+  var bannerHtml='<div class="pred-banner">'
+    +'<div><div class="pb-label">ML v2 - '+ct.toUpperCase()+' - R'+tRound+' - T='+T.toFixed(1)+'</div>'
+    +'<div class="pb-name" style="color:'+w.color+'">'+w.sur+'</div>'
+    +'<div class="pb-conf">'+wP[0].toFixed(1)+'% win probability</div>'
+    +'<div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">'
+      +'<span style="font-size:9px;color:var(--text-3)">Constructor P'+w.tPos+' - '+w.tPts+'pts</span>'
+      +'<span style="font-size:9px;color:var(--text-3)">Driver P'+w.cPos+' - '+w.cPts+'pts</span>'
+      +'<span style="font-size:9px;color:'+trendClr+'">'+w.tm.trend.toUpperCase()+'</span>'
+    +'</div></div>'
+    +'<div style="font-size:36px;margin-left:auto">&#127942;</div>'
+  +'</div>';
+  setHtml('pred-banner',bannerHtml);
+  setHtml('pred-wins',feats.slice(0,12).map(function(f,i){return predRow(i+1,f.sur,f.color,wP[i],true);}).join(''));
+  setHtml('pred-pods',feats.slice(0,12).map(function(f,i){return predRow(i+1,f.sur,f.color,podP[i],false);}).join(''));
+  var gd=DRV_S.map(function(d){var r=S.drvRaceResults[d.id]||[];if(!r.length)return null;var ag=r.reduce(function(a,x){return a+(x.grid?x.grid-x.pos:0);},0)/r.length;return{sur:d.sur,color:TEAMS_S[d.team].color,ag:ag};}).filter(Boolean).sort(function(a,b){return b.ag-a.ag;}).slice(0,12);
+  var mg=Math.max.apply(null,gd.map(function(d){return Math.abs(d.ag);}));if(!mg)mg=1;
+  setHtml('pred-gains',gd.map(function(d){return '<div class="gl-row"><div class="gl-n">'+d.sur+'</div><div class="gl-bw"><div class="gl-b" style="width:'+(Math.abs(d.ag)/mg*100).toFixed(1)+'%;background:'+(d.ag>0?'var(--green)':'var(--red)')+'"></div></div><div class="gl-v" style="color:'+(d.ag>0?'var(--green)':'var(--red)')+'">'+(d.ag>0?'+':'')+d.ag.toFixed(1)+'</div></div>';}).join(''));
+  var strats={street:['Safety car probability VERY HIGH','Track position critical','Grid position decisive'],power:['DRS decisive - qualifying critical','Engine advantage teams lead','1-stop Hard optimal'],technical:['High tyre deg - 2-stop viable','Aero efficiency in slow corners','Undercut/overcut both valid'],mixed:['1-stop Medium to Hard likely','Weather adds uncertainty','DRS available for overtaking']};
+  var s=strats[ct]||strats.mixed;
+  var stratHtml='<div style="margin-bottom:10px;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-3)">'+ct.toUpperCase()+' - T='+T.toFixed(1)+' - '+S.completedRounds+' races done</div>';
+  s.forEach(function(b){stratHtml+='<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px"><span style="color:var(--red)">&rsaquo;</span>'+b+'</div>';});
+  stratHtml+='<div style="margin-top:12px;padding:10px;background:var(--glass-1);border-radius:var(--r-sm);border:1px solid var(--line)"><div style="font-size:8px;color:var(--text-3);margin-bottom:6px">2026 TEAM MOMENTUM</div>';
+  Object.entries(TEAM_MOM_2026).slice(0,7).forEach(function(entry){
+    var tid=entry[0],tm=entry[1],t2=TEAMS_S[tid];if(!t2)return;
+    var ti=tm.trend==='surging'?'&#x1F525;':tm.trend==='fading'?'&#x1F4C9;':'&rarr;';
+    stratHtml+='<div style="display:flex;align-items:center;gap:7px;font-size:10px;padding:2px 0"><div style="width:5px;height:5px;border-radius:50%;background:'+t2.color+'"></div><div style="flex:1">'+t2.name+'</div>'+ti+' <span style="color:var(--text-3)">'+tm.pts+'pts</span></div>';
+  });
+  stratHtml+='</div>';
+  setHtml('pred-strat',stratHtml);
+}
 const runPredictor = runMLPredictor;
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+function showModal(sch,race) {
+  setText('modal-title',(sch.flag||'')+' '+race.raceName);
+  const rows=race.Results.map(r=>{
+    const pos=parseInt(r.position), pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+    const clr=TEAMCOL[r.Constructor.name]||'#666';
+    const isFL=r.FastestLap&&r.FastestLap.rank==='1';
+    return`<div style="display:grid;grid-template-columns:28px 22px 1fr 1fr 46px;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px">
+      <span class="dt-pos ${pc}" style="font-size:18px">${pos}</span>
+      <span style="font-size:9px;color:var(--text-3)">#${r.Driver.permanentNumber}</span>
+      <div><div style="font-weight:500">${isFL?'<span class="fl">FL</span>':' '}${r.Driver.givenName} ${r.Driver.familyName}</div><div style="font-size:9px;color:var(--text-3)">${r.status}</div></div>
+      <div style="font-size:10px" class="dot" style="background:${clr}"> ${r.Constructor.name}</div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:16px;text-align:right;${pos<=3?'color:'+clr:''}">${r.points}<span style="font-size:9px;color:var(--text-3)"> pts</span></div>
+    </div>`;
+  }).join('');
+  setHtml('modal-b',`<div style="font-size:9px;color:var(--text-3);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-family:var(--font-mono)">Round ${race.round} · ${race.date}${race.Circuit?' · '+race.Circuit.circuitName:''}</div>${rows}`);
+  const ov=document.getElementById('modal-overlay'); if(ov) ov.classList.add('on');
+}
+function closeModal(){const ov=document.getElementById('modal-overlay');if(ov)ov.classList.remove('on');}
+function jumpDrv(num){goto('drivers');const id=NUM_ID[parseInt(num)];if(id)setTimeout(()=>loadDriver(id),50);}
+
+/* ═══════════════════════════════════════
+   CLOCK + INIT
+═══════════════════════════════════════ */
+(()=>{function tick(){const el=document.getElementById('clock');if(!el)return;const n=new Date(),p=v=>String(v).padStart(2,'0');el.textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());}tick();setInterval(tick,1000);})();
+
+function populateSelectors() {
+  const of1Opts=OF1_RACES_2026.map(r=>`<option value="${r.key}">${r.flag} R${r.round} ${r.country} (${r.date})</option>`).join('');
+  ['live-sess','t-sess'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.dataset.pop){el.innerHTML=of1Opts;el.dataset.pop='1';}});
+  const drvOpts=DRV_S.map(d=>`<option value="${d.num}">${d.flag} #${d.num} ${d.sur}</option>`).join('');
+  const td=document.getElementById('t-drv');if(td&&!td.dataset.pop){td.innerHTML=drvOpts;td.value='63';td.dataset.pop='1';}
+  const td2=document.getElementById('t-drv2');if(td2&&!td2.dataset.pop){td2.innerHTML='<option value="">vs. driver</option>'+drvOpts;td2.dataset.pop='1';}
+  const ps=document.getElementById('pred-sel');
+  if(ps){const up=S.schedule.filter(r=>r.status==='next'||r.status==='upcoming');ps.innerHTML=up.map(r=>`<option value="${r.round}">${r.flag} R${r.round} ${r.country}</option>`).join('');}
+}
+
+window.addEventListener('load',()=>{
+  renderDrvSidebar();
+  buildMap();
+  boot().then(()=>{
+    populateSelectors();
+    setInterval(()=>boot(),5*60*1000);
+  });
+});
+
 </script>
 </body>
 </html>
