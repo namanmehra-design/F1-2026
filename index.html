@@ -796,6 +796,13 @@ option { background:#0d0d2b; }
     <button class="pill-btn" id="play-btn" onclick="togglePlay()">▶ Play</button>
     <button class="pill-btn" onclick="resetPlay()">↺ Reset</button>
     <span class="mono" id="play-time" style="font-size:10px;color:var(--text-3)">—</span>
+    <div style="display:flex;align-items:center;gap:6px;background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 10px">
+      <span style="font-size:9px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;font-family:var(--font-mono)">LAP</span>
+      <button onclick="jumpLap(-1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1">‹</button>
+      <span id="lap-select-num" style="font-family:var(--font-display);font-size:16px;font-weight:800;min-width:24px;text-align:center;color:var(--text)">1</span>
+      <button onclick="jumpLap(1)" style="background:none;border:none;color:var(--text-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1">›</button>
+      <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono)" id="lap-of-total">/ —</span>
+    </div>
     <div style="margin-left:auto;display:flex;gap:5px" id="speed-btns">
       <button class="spd-btn on" onclick="setSpd(1,this)">1×</button>
       <button class="spd-btn" onclick="setSpd(2,this)">2×</button>
@@ -1945,12 +1952,15 @@ async function loadCircuit() {
   // Use the first driver's timestamps as master clock
   const masterDrv=Object.keys(CT.locData).find(n=>CT.locData[n].length>100);
   CT.frames=[];
-  if(masterDrv && CT.locData[masterDrv].length>0) {
-    const masterPts=CT.locData[masterDrv];
-    const startMs=new Date(masterPts[0].date).getTime();
-    const endMs=new Date(masterPts[masterPts.length-1].date).getTime();
-    // Build pre-indexed lookup for performance: every 500ms frame
-    for(let t=startMs; t<=endMs; t+=500) CT.frames.push(t);
+  // Use the driver with the most data as master clock
+  let bestMasterDrv=masterDrv, bestLen=0;
+  Object.entries(CT.sortedLoc).forEach(([n,pts])=>{ if(pts.length>bestLen){bestLen=pts.length;bestMasterDrv=parseInt(n);} });
+  if(bestMasterDrv && CT.sortedLoc[bestMasterDrv] && CT.sortedLoc[bestMasterDrv].length>0) {
+    const masterPts=CT.sortedLoc[bestMasterDrv];
+    const startMs=masterPts[0].t;
+    const endMs=masterPts[masterPts.length-1].t;
+    // 300ms frames = smoother replay (~3.3fps, matches OpenF1 ~3.7Hz data)
+    for(let t=startMs; t<=endMs; t+=300) CT.frames.push(t);
   }
 
   // Pre-build sorted arrays for fast binary search (exclude zero coords)
@@ -1973,9 +1983,18 @@ async function loadCircuit() {
   }
 
   CT.loaded=true;
+  // Get total laps from race result
+  const sess2026=OF1_RACES_2026.find(r=>r.key===skey);
+  if(sess2026&&S.raceResults[sess2026.round]&&S.raceResults[sess2026.round].Results[0]){
+    CT.totalLaps=parseInt(S.raceResults[sess2026.round].Results[0].laps)||58;
+  }
+  buildLapFrameMap();
   buildTower();
   drawFrame(0);
   showFlagStream();
+  // Update lap of total
+  const lotEl=document.getElementById('lap-of-total');
+  if(lotEl) lotEl.textContent='/ '+CT.totalLaps;
 
   const sess=OF1_RACES_2026.find(r=>r.key===skey);
   setText('lap-badge',`${sess?sess.flag+' ':''} LAP 1 / 58`);
@@ -2002,7 +2021,7 @@ function posAtTime(num, targetMs) {
   // Check surrounding
   const best=lo>0&&Math.abs(pts[lo-1].t-targetMs)<Math.abs(pts[lo].t-targetMs)?lo-1:lo;
   const diff=Math.abs(pts[best].t-targetMs);
-  if(diff>8000) return null; // >8s away, driver not tracked
+  if(diff>15000) return null; // >15s away, driver not tracked
   return pts[best];
 }
 
@@ -2028,12 +2047,19 @@ function buildTower() {
   } else {
     towerDrivers=[...CT.drivers].sort((a,b)=>a.driver_number-b.driver_number);
   }
-  // Merge with DRV_S to ensure all 22 appear
+  // Merge with DRV_S to ensure all 22 appear AND sync CT.driverColors
   const allNums=new Set([...towerDrivers.map(d=>d.driver_number),...DRV_S.map(d=>d.num)]);
-  allNums.forEach(num=>{if(!towerDrivers.find(d=>d.driver_number===num)){
-    const drvS=DRV_S.find(d=>d.num===num);
-    if(drvS) towerDrivers.push({driver_number:num,team_colour:(TEAMS_S[drvS.team].color||'#fff').replace('#','')});
-  }});
+  allNums.forEach(num=>{
+    if(!towerDrivers.find(d=>d.driver_number===num)){
+      const drvS=DRV_S.find(d=>d.num===num);
+      if(drvS) towerDrivers.push({driver_number:num,team_colour:(TEAMS_S[drvS.team].color||'#fff').replace('#','')});
+    }
+    // Critical: ensure ALL drivers are in driverColors so drawFrame renders them
+    if(!CT.driverColors[num]){
+      const drvS=DRV_S.find(d=>d.num===num);
+      if(drvS) CT.driverColors[num]=TEAMS_S[drvS.team].color||'#ffffff';
+    }
+  });
   el.innerHTML=towerDrivers.map((d,i)=>{
     const clr=CT.driverColors[d.driver_number]||('#'+(d.team_colour||'ffffff'));
     const nm=DRV_S.find(x=>x.num===d.driver_number); const sur=nm?nm.sur:'#'+d.driver_number;
@@ -2235,13 +2261,73 @@ function drawFrame(fi) {
   const fill=document.getElementById('replay-prog-fill');
   if(fill) fill.style.width=(CT.frames.length>1?fi/(CT.frames.length-1)*100:0)+'%';
 
-  // Lap estimate
+  // Lap counter - sync with selector
   const elapsed=curMs-CT.raceStartMs;
+  const sessLapTime=CT.skey===11234?82000:88000;
   if(elapsed>0) {
-    const lap=Math.min(Math.floor(elapsed/82000)+1,58);
-    setText('lap-badge',`LAP ${lap} / 58`);
+    const lap=Math.min(Math.floor(elapsed/sessLapTime)+1,CT.totalLaps||58);
+    setText('lap-badge',`LAP ${lap} / ${CT.totalLaps||58}`);
+    if(lap!==CT.currentLap){
+      CT.currentLap=lap;
+      const numEl=document.getElementById('lap-select-num');
+      if(numEl) numEl.textContent=lap;
+    }
   }
   setText('play-time',new Date(curMs).toUTCString().slice(17,25)+' UTC');
+}
+
+// Lap index: maps lapNumber -> frame index where that lap starts
+CT.lapFrameMap = {}; // {lapNum: frameIdx}
+CT.currentLap = 1;
+CT.totalLaps = 58;
+
+function buildLapFrameMap() {
+  // For each lap, find the frame closest to when the race leader started that lap
+  // Use CT.raceStartMs and average lap time to estimate
+  // If we have actual intervals/position data, use that
+  CT.lapFrameMap = {1: 0};
+  if(!CT.frames.length) return;
+  const raceMs = CT.raceStartMs || CT.frames[0];
+  // Estimate lap starts using average lap time (~82s for Australia, ~88s for China)
+  // Better: use actual timing from position changes
+  const sessInfo = OF1_RACES_2026.find(r=>r.key===CT.skey);
+  const estLapTime = CT.skey===11234 ? 82000 : 88000; // ms per lap
+  for(let lap=1; lap<=CT.totalLaps; lap++) {
+    const lapMs = raceMs + (lap-1)*estLapTime;
+    // Find closest frame
+    let best=0;
+    for(let i=0;i<CT.frames.length;i++){
+      if(Math.abs(CT.frames[i]-lapMs)<Math.abs(CT.frames[best]-lapMs)) best=i;
+    }
+    CT.lapFrameMap[lap]=best;
+  }
+  // Update total laps display
+  const totalEl=document.getElementById('lap-of-total');
+  if(totalEl) totalEl.textContent='/ '+CT.totalLaps;
+}
+
+function jumpLap(delta) {
+  if(!CT.loaded) return;
+  CT.currentLap = Math.max(1, Math.min(CT.totalLaps, CT.currentLap + delta));
+  const targetFrame = CT.lapFrameMap[CT.currentLap] || 0;
+  CT.curFrame = targetFrame;
+  const numEl=document.getElementById('lap-select-num');
+  if(numEl) numEl.textContent = CT.currentLap;
+  drawFrame(CT.curFrame);
+}
+
+function syncLapSelector(fi) {
+  // Update lap selector when frame changes
+  const curMs = CT.frames[fi]||0;
+  const raceMs = CT.raceStartMs||CT.frames[0]||0;
+  const elapsed = curMs - raceMs;
+  const sessLapTime = CT.skey===11234 ? 82000 : 88000;
+  const estimatedLap = Math.max(1, Math.min(CT.totalLaps, Math.floor(elapsed/sessLapTime)+1));
+  if(estimatedLap !== CT.currentLap) {
+    CT.currentLap = estimatedLap;
+    const numEl=document.getElementById('lap-select-num');
+    if(numEl) numEl.textContent = CT.currentLap;
+  }
 }
 
 function togglePlay(){
@@ -2602,11 +2688,13 @@ async function loadArchRace(skey,round,country,flag,year){
     main.innerHTML='<div class="arch-empty"><div style="font-size:32px">⊛</div><div style="font-family:var(--font-display);font-size:14px;font-weight:800;letter-spacing:2px;color:var(--text-3)">No Data</div><div style="font-size:10px;color:var(--text-3);margin-top:4px">OpenF1 covers 2023+ only</div></div>';
     return;
   }
-  const [drvs,laps,stints,pits,wx,rc]=await Promise.all([
+  const [drvs,laps,stints,pits,wx,rc,qualiData]=await Promise.all([
     of1('drivers',`session_key=${skey}`),of1('laps',`session_key=${skey}`),
     of1('stints',`session_key=${skey}`),of1('pit',`session_key=${skey}`),
-    of1('weather',`session_key=${skey}`),of1('race_control',`session_key=${skey}`)
+    of1('weather',`session_key=${skey}`),of1('race_control',`session_key=${skey}`),
+    apiFetch(`${JOLPICA}/f1/${year}/${round}/qualifying.json`,'arch-quali')
   ]);
+  const qualiResults=qualiData?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults||[];
   const drivers=drvs||[],allLaps=laps||[],allStints=stints||[],allPits=pits||[],weather=wx||[],raceCtrl=rc||[];
   const wxMid=weather.length?weather[Math.floor(weather.length/2)]:null;
   const flPerDriver={};
@@ -2641,6 +2729,10 @@ async function loadArchRace(skey,round,country,flag,year){
       <div class="tc"><div class="tc-ttl">📊 Positions Gained / Lost</div><div id="arch-pos-gains" style="margin-top:6px"></div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="tc"><div class="tc-ttl">🏎 Qualifying Results</div><div id="arch-quali-results" style="margin-top:6px;max-height:220px;overflow-y:auto"></div></div>
+      <div class="tc"><div class="tc-ttl">🥇 Podium & Key Stats</div><div id="arch-podium" style="margin-top:6px"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="tc"><div class="tc-ttl">🚩 Race Control Highlights</div><div id="arch-rc" style="max-height:130px;overflow-y:auto;margin-top:6px"></div></div>
       <div class="tc"><div class="tc-ttl">📈 Pace Comparison</div><div style="height:130px;position:relative"><canvas id="arch-laps-chart"></canvas></div></div>
     </div>`;
@@ -2672,12 +2764,71 @@ async function loadArchRace(skey,round,country,flag,year){
     const maxG=Math.max(...gains.map(d=>Math.abs(d.delta)),1);
     pgEl.innerHTML=gains.slice(0,10).map(d=>`<div class="gl-row"><div class="gl-n" style="font-size:10px">${d.name}</div><div class="gl-bw"><div class="gl-b" style="width:${Math.abs(d.delta)/maxG*100}%;background:${d.delta>0?'var(--green)':'var(--red)'}"></div></div><div class="gl-v" style="color:${d.delta>0?'var(--green)':'var(--red)'}">${d.delta>0?'+':''}${d.delta}</div></div>`).join('');
   } else if(pgEl){pgEl.innerHTML='<div class="empty">No grid data</div>';}
+
+  // Qualifying Results
+  const qualiEl=document.getElementById('arch-quali-results');
+  if(qualiEl){
+    if(qualiResults.length){
+      qualiEl.innerHTML=qualiResults.map(r=>{
+        const pos=parseInt(r.position),clr=TEAMCOL[r.Constructor.name]||'#666';
+        const pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+        const fastest=qualiResults[0]?.Q3,isP=r.Q3&&r.Q3===fastest;
+        return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px">'
+          +'<span class="dt-pos '+pc+'" style="font-size:14px;width:18px">'+pos+'</span>'
+          +'<span style="width:5px;height:5px;border-radius:50%;background:'+clr+';flex-shrink:0"></span>'
+          +'<span style="flex:1;font-weight:500">'+r.Driver.familyName+'</span>'
+          +'<span style="color:var(--text-3);font-size:9px">'+r.Constructor.name.split(' ')[0]+'</span>'
+          +'<span class="mono" style="font-size:9px;'+(isP?'color:#a855f7;font-weight:700':'color:var(--text-3)')+'">'+(r.Q3||r.Q2||r.Q1||'—')+'</span>'
+          +'</div>';
+      }).join('');
+    } else { qualiEl.innerHTML='<div class="empty">Qualifying data unavailable</div>'; }
+  }
+
+  // Podium & Key Stats
+  const podEl=document.getElementById('arch-podium');
+  if(podEl&&jolRace){
+    const p1=jolRace.Results[0],p2=jolRace.Results[1],p3=jolRace.Results[2];
+    const fl=jolRace.Results.find(r=>r.FastestLap&&r.FastestLap.rank==='1');
+    const totalPts=jolRace.Results.reduce((a,r)=>a+parseFloat(r.points),0);
+    const dnfs=jolRace.Results.filter(r=>r.status==='Retired'||r.status==='Did not start').length;
+    const c1=TEAMCOL[p1?.Constructor?.name]||'#666',c2=TEAMCOL[p2?.Constructor?.name]||'#666',c3=TEAMCOL[p3?.Constructor?.name]||'#666';
+    const mkPod=(p,c,medal,mclr)=>'<div style="flex:1;background:var(--glass-1);border:1px solid '+c+';border-radius:var(--r-sm);padding:9px 6px;text-align:center">'
+      +'<div style="font-size:16px;margin-bottom:3px">'+medal+'</div>'
+      +'<div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:'+c+'">'+(p?.Driver?.familyName||'—')+'</div>'
+      +'<div style="font-size:8px;color:var(--text-3)">'+(p?.Constructor?.name?.split(' ')[0]||'')+'</div>'
+      +'<div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:'+mclr+';margin-top:3px">'+(p?.points||'')+'pts</div>'
+      +'</div>';
+    podEl.innerHTML='<div style="display:flex;gap:6px;margin-bottom:10px">'
+      +mkPod(p1,c1,'🥇','var(--gold)')+mkPod(p2,c2,'🥈','#C8C8C8')+mkPod(p3,c3,'🥉','#CD7F32')
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">'
+        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">FASTEST LAP</div><div style="font-size:10px;font-weight:700;color:#a855f7;margin-top:2px">'+(fl?fl.Driver.familyName+' ⚡':'—')+'</div></div>'
+        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">TOTAL PTS</div><div style="font-size:10px;font-weight:700;margin-top:2px">'+totalPts+'</div></div>'
+        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">DNFs</div><div style="font-size:10px;font-weight:700;color:var(--red);margin-top:2px">'+dnfs+'</div></div>'
+        +'<div style="background:var(--glass-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px"><div style="font-size:8px;color:var(--text-3)">POLE</div><div style="font-size:10px;font-weight:700;margin-top:2px">'+(qualiResults[0]?.Driver?.familyName||'—')+'</div></div>'
+      +'</div>';
+  } else if(podEl){podEl.innerHTML='<div class="empty">Results loading…</div>';}
   const flEl=document.getElementById('arch-fl-list');
   if(flEl) flEl.innerHTML=sorted.slice(0,10).map((d,i)=>{const clr='#'+(d.team_colour||'aaaaaa');const fl=flPerDriver[d.driver_number];return`<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--line);font-size:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:14px;width:20px;color:${i<3?['var(--gold)','#C8C8C8','#CD7F32'][i]:'var(--text-3)'}">${i+1}</div><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1">${d.last_name||'#'+d.driver_number}</div><div style="font-family:var(--font-mono);color:${i===0?'#a855f7':'var(--text-2)'}">${fmtT(fl)}</div></div>`;}).join('');
   const tyEl=document.getElementById('arch-tyre-list');
   if(tyEl) tyEl.innerHTML=drivers.slice(0,10).map(d=>{const clr='#'+(d.team_colour||'aaaaaa');const ds=allStints.filter(s=>s.driver_number===d.driver_number);const tyres=ds.map(s=>{const tclr={SOFT:'#FF2222',MEDIUM:'#FFEE00',HARD:'#EEEEEE',INTERMEDIATE:'#39B54A',WET:'#0067FF'}[s.compound]||'#EEEEEE';const tcol=['#FFEE00','#EEEEEE'].includes(tclr)?'#000':'#fff';return`<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:${tclr};color:${tcol};font-size:6px;font-weight:800;margin-right:2px">${(s.compound||'H').charAt(0)}</span>`;}).join('');return`<div style="display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--line);font-size:9px"><div style="width:5px;height:5px;border-radius:50%;background:${clr}"></div><div style="flex:1;font-weight:500">${d.last_name||'#'+d.driver_number}</div><div>${tyres||'—'}</div></div>`;}).join('');
   const rcEl=document.getElementById('arch-rc');
-  if(rcEl) rcEl.innerHTML=raceCtrl.filter(m=>m.flag&&m.flag!=='CLEAR'||m.category==='SafetyCar').slice(0,20).map(m=>{const cls=m.flag==='GREEN'?'color:var(--green)':(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'color:#ffc800':m.category==='SafetyCar'?'color:var(--orange)':'color:var(--red)';return`<div style="padding:2px 0;border-bottom:1px solid var(--line);font-size:8px;font-family:var(--font-mono)"><span style="${cls};font-weight:700">${m.flag||m.category}</span> <span style="color:var(--text-3)">${(m.date||'').slice(11,19)}</span> ${(m.message||'').slice(0,50)}</div>`;}).join('')||'<div class="empty">No highlights</div>';
+  if(rcEl){
+    const meaningful=raceCtrl.filter(m=>{
+      if(!m) return false;
+      if(m.category==='SafetyCar') return true;
+      if(m.flag&&m.flag!=='CLEAR'&&m.flag!=='GREEN') return true;
+      if(m.message&&(m.message.includes('INCIDENT')||m.message.includes('INVESTIGATION')||m.message.includes('PENALTY')||m.message.includes('VSC')||m.message.includes('SAFETY CAR')||m.message.includes('RED FLAG')||m.message.includes('CHEQUERED')||m.message.includes('DRS ENABLED')||m.message.includes('TRACK LIMITS')||m.message.includes('SESSION STARTED'))) return true;
+      return false;
+    });
+    const showMsgs=meaningful.length?meaningful:raceCtrl.slice(0,15);
+    rcEl.innerHTML=showMsgs.slice(0,25).map(m=>{
+      const clr=m.flag==='GREEN'?'var(--green)':(m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW')?'#ffc800':m.category==='SafetyCar'?'var(--orange)':(m.flag==='RED'||m.flag==='BLUE')?'var(--red)':'var(--text-2)';
+      const icon=m.flag==='GREEN'?'🟢':m.flag==='YELLOW'||m.flag==='DOUBLE YELLOW'?'🟡':m.category==='SafetyCar'?'🟠':m.flag==='RED'?'🔴':m.flag==='CHEQUERED'?'🏁':m.flag==='BLUE'?'🔵':'📋';
+      const lap=m.lap_number?'L'+m.lap_number+' · ':'';
+      return '<div style="display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--line);font-size:10px;align-items:flex-start">'+'<span style="flex-shrink:0">'+icon+'</span>'+'<span style="color:var(--text-3);font-family:var(--font-mono);font-size:9px;min-width:56px;flex-shrink:0">'+lap+(m.date||'').slice(11,19)+'</span>'+'<span style="color:'+clr+';font-weight:600;flex:1;line-height:1.4">'+(m.message||m.flag||m.category||'—')+'</span>'+'</div>';
+    }).join('')+(raceCtrl.length===0?'<div class="empty" style="font-size:10px">No race control data</div>':'');
+  }
   killChart('arch');
   const alc=document.getElementById('arch-laps-chart');
   if(alc&&typeof Chart!=='undefined'){CHARTS.arch=new Chart(alc.getContext('2d'),{type:'bar',data:{labels:drivers.slice(0,12).map(d=>d.name_acronym||'#'+d.driver_number),datasets:[{label:'Valid laps',data:drivers.slice(0,12).map(d=>allLaps.filter(l=>l.driver_number===d.driver_number&&l.lap_duration&&l.lap_duration>60).length),backgroundColor:drivers.slice(0,12).map(d=>'#'+(d.team_colour||'aaaaaa')+'99'),borderColor:drivers.slice(0,12).map(d=>'#'+(d.team_colour||'aaaaaa')),borderWidth:1.5,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gc},ticks:{color:tc,font:{size:9}}},x:{grid:{display:false},ticks:{color:tc,font:{size:9}}}}}});}
@@ -2733,280 +2884,141 @@ const CIRCUIT_TYPE = {
   'United Arab Emirates':'technical','Las Vegas':'power','Barcelona':'technical'
 };
 
+/* ═══════════════════════════════════════
+   APEX ML PREDICTOR v2
+   8-feature weighted model with:
+   - 2026 form (exponential recency decay)  
+   - Constructor 2026 points per race
+   - Historical circuit type win rates (discounted for new regs)
+   - Qualifying/grid pace proxy
+   - Reliability (combined 2025+2026)
+   - Racecraft (avg positions gained)
+   - Championship pressure curve
+   - Team regulation momentum trend
+═══════════════════════════════════════ */
+
+// Per-driver historical data (2023-2025)
+const HIST_DATA = {
+  verstappen:{wins2023:19,wins2024:9,wins2025:3,circuitWins:{street:2,power:8,technical:7,mixed:12},poles2025:6,podiums2025:12,avgGrid2025:2.1,dnfRate2025:0.04,dnfRate2024:0.08},
+  norris:    {wins2023:0, wins2024:6,wins2025:14,circuitWins:{street:1,power:5,technical:4,mixed:8}, poles2025:8,podiums2025:21,avgGrid2025:1.8,dnfRate2025:0.04,dnfRate2024:0.05},
+  piastri:   {wins2023:0, wins2024:2,wins2025:6, circuitWins:{street:0,power:2,technical:3,mixed:4}, poles2025:3,podiums2025:18,avgGrid2025:3.2,dnfRate2025:0.04,dnfRate2024:0.05},
+  leclerc:   {wins2023:1, wins2024:3,wins2025:2, circuitWins:{street:2,power:3,technical:1,mixed:2}, poles2025:5,podiums2025:10,avgGrid2025:4.1,dnfRate2025:0.12,dnfRate2024:0.10},
+  russell:   {wins2023:0, wins2024:2,wins2025:4, circuitWins:{street:1,power:2,technical:1,mixed:2}, poles2025:4,podiums2025:12,avgGrid2025:5.2,dnfRate2025:0.04,dnfRate2024:0.04},
+  hamilton:  {wins2023:0, wins2024:2,wins2025:2, circuitWins:{street:1,power:2,technical:1,mixed:1}, poles2025:2,podiums2025:8, avgGrid2025:5.8,dnfRate2025:0.04,dnfRate2024:0.04},
+  antonelli: {wins2023:0, wins2024:0,wins2025:0, circuitWins:{street:0,power:0,technical:0,mixed:1}, poles2025:0,podiums2025:2, avgGrid2025:8.1,dnfRate2025:0.08,dnfRate2024:0.00},
+  sainz:     {wins2023:1, wins2024:1,wins2025:1, circuitWins:{street:1,power:2,technical:0,mixed:1}, poles2025:2,podiums2025:6, avgGrid2025:7.2,dnfRate2025:0.04,dnfRate2024:0.04},
+  alonso:    {wins2023:1, wins2024:0,wins2025:0, circuitWins:{street:0,power:1,technical:1,mixed:0}, poles2025:0,podiums2025:1, avgGrid2025:11.2,dnfRate2025:0.08,dnfRate2024:0.12},
+  default:   {wins2023:0, wins2024:0,wins2025:0, circuitWins:{street:0,power:0,technical:0,mixed:0}, poles2025:0,podiums2025:0, avgGrid2025:14,  dnfRate2025:0.10,dnfRate2024:0.10}
+};
+
+// Team 2026 regulation momentum
+const TEAM_MOM_2026 = {
+  mercedes:{score:95,pts2026:98,trend:'surging', regBenefit:1.20},
+  ferrari: {score:80,pts2026:67,trend:'strong',  regBenefit:1.10},
+  haas:    {score:65,pts2026:17,trend:'rising',  regBenefit:1.08},
+  mclaren: {score:75,pts2026:18,trend:'solid',   regBenefit:0.88},
+  redbull: {score:58,pts2026:12,trend:'fading',  regBenefit:0.72},
+  rb:      {score:52,pts2026:12,trend:'neutral', regBenefit:0.95},
+  williams:{score:48,pts2026:0, trend:'neutral', regBenefit:0.92},
+  alpine:  {score:45,pts2026:10,trend:'rising',  regBenefit:1.00},
+  aston:   {score:40,pts2026:0, trend:'fading',  regBenefit:0.90},
+  audi:    {score:38,pts2026:2, trend:'learning',regBenefit:0.85},
+  cadillac:{score:30,pts2026:0, trend:'unknown', regBenefit:0.80},
+};
+
 function runMLPredictor() {
   const sel=document.getElementById('pred-sel'); if(!sel||!sel.value) return;
   const tRound=parseInt(sel.value);
   const tRace=S.schedule.find(r=>r.round===tRound); if(!tRace) return;
   const circType=CIRCUIT_TYPE[tRace.country]||'mixed';
 
-  // ── FEATURE ENGINEERING ──────────────────────────────
   const features=DRV_S.map(d=>{
-    const res=S.drvRaceResults[d.id]||[];
-    const t=TEAMS_S[d.team], clr=t.color;
-    const tm=TEAM_MOMENTUM[d.team]||{score:30,trend:'neutral',wins2025:0,wins2026:0};
-    const hw=HIST_WINS[d.id]||{street:0,power:0,technical:0,mixed:0,total:0};
+    const res=S.drvRaceResults[d.id]||[], t=TEAMS_S[d.team], clr=t.color;
+    const tm=TEAM_MOM_2026[d.team]||{score:35,pts2026:0,trend:'neutral',regBenefit:0.85};
+    const hd=HIST_DATA[d.id]||HIST_DATA.default;
     const std=S.wdc.find(s=>NUM_ID[parseInt(s.Driver.permanentNumber)]===d.id);
-    const champPos=std?parseInt(std.position):20;
-    const champPts=std?parseFloat(std.points):0;
     const tStd=S.wcc.find(s=>s.Constructor.name.includes(t.name.split(' ')[0])||s.Constructor.name===t.name);
-    const constrPos=tStd?parseInt(tStd.position):10;
-    const constrPts=tStd?parseFloat(tStd.points):0;
+    const champPos=std?parseInt(std.position):20, champPts=std?parseFloat(std.points):0;
+    const constrPos=tStd?parseInt(tStd.position):10, constrPts=tStd?parseFloat(tStd.points):0;
 
-    // F1: Current season 2026 form (exponential decay weighting — most recent races 3x more weight)
+    // F1: 2026 form — exponential recency decay
     const recent3=res.slice(-3);
     const form2026=recent3.reduce((acc,r,i)=>{
-      const decay=Math.pow(2,i); // R-1: weight 1, R-2: weight 2, R-3: weight 4 (most recent highest)
-      const pts=r.pos===1?30:r.pos===2?22:r.pos===3?16:r.pos<=5?12:r.pos<=8?8:r.pos<=10?4:r.pos<=15?2:0;
-      const dnfPen=r.status==='Retired'?-15:0;
-      return acc+(pts+dnfPen)*decay;
+      const w=Math.pow(2.5,i);
+      const pts=r.pos===1?30:r.pos===2?22:r.pos===3?16:r.pos<=5?12:r.pos<=8?8:r.pos<=10?4:r.pos<=15?1:0;
+      return acc+(pts+(r.status==='Retired'?-12:0))*w;
     },0);
-    const form2026Norm=form2026/Math.max(recent3.length*30*4,1)*100;
+    const form2026Norm=Math.min(100,form2026/Math.max(recent3.length*30*6.25,1)*100);
 
-    // F2: Historical circuit type win rate (2023-2025)
-    const totalInType=Math.max(hw[circType]||0,0);
-    const circuitFit=(totalInType*25)+(hw.total*3); // wins at this type * 25 + total wins * 3
+    // F2: Constructor 2026 actual points rate
+    const constrPtsPerRace=S.completedRounds>0?constrPts/S.completedRounds:0;
+    const maxCPPR=S.completedRounds>0?(S.wcc[0]?parseFloat(S.wcc[0].points)/S.completedRounds:49):49;
+    const constrScore=(constrPtsPerRace/Math.max(maxCPPR,1))*100*tm.regBenefit;
 
-    // F3: Constructor momentum (how strong the car is RIGHT NOW)
-    const constrScore=tm.score * (tm.trend==='peak'?1.3:tm.trend==='rising'?1.15:tm.trend==='fading'?0.85:1.0);
+    // F3: Historical circuit type (discounted 70% for new regs)
+    const histWins=(hd.circuitWins[circType]||0)*4+((hd.wins2023+hd.wins2024+hd.wins2025)*0.5);
+    const histDiscounted=histWins*0.30;
 
-    // F4: Championship pressure factor (leaders defend, chasers attack)
-    // Leader: slightly conservative, P2-P5: high motivation, P6+: nothing to lose
-    const pressureMult=champPos===1?0.92:champPos<=3?1.1:champPos<=5?1.05:champPos<=10?1.0:0.95;
+    // F4: Grid/qualifying pace
+    const actualGrids=res.map(r=>r.grid||12).filter(g=>g>0);
+    const avgGrid=actualGrids.length?actualGrids.reduce((a,b)=>a+b,0)/actualGrids.length:hd.avgGrid2025;
+    const gridScore=Math.max(0,(22-avgGrid)/21*60);
 
-    // F5: Qualifying/Grid position proxy (driver raw pace)
-    // Use 2026 avg qualifying implied by race starts
-    const avgGrid=res.length?res.reduce((a,r)=>a+(r.grid||10),0)/res.length:12;
-    const gridScore=Math.max(0,(21-avgGrid)*8);
+    // F5: Reliability
+    const dnf2026=res.length?res.filter(r=>r.status==='Retired').length/res.length:hd.dnfRate2025;
+    const combinedDnf=res.length>=2?(dnf2026*0.6+hd.dnfRate2025*0.4):hd.dnfRate2025;
+    const reliabilityScore=Math.max(0,(1-combinedDnf*4)*25);
 
-    // F6: Reliability (DNF rate penalizes)
-    const dnfRate=res.length?res.filter(r=>r.status==='Retired').length/res.length:0;
-    const reliabilityScore=Math.max(0,(1-dnfRate*3)*20);
-
-    // F7: Racecraft (positions gained on average — measures race day execution)
+    // F6: Racecraft
     const finRaces=res.filter(r=>r.grid>0&&r.status!=='Did not start');
     const avgGain=finRaces.length?finRaces.reduce((a,r)=>a+(r.grid-r.pos),0)/finRaces.length:0;
-    const racecraftScore=Math.max(-20,Math.min(30,avgGain*5));
+    const racecraftScore=Math.max(-15,Math.min(25,avgGain*5));
 
-    // F8: 2025 season carry-over (team still has same car DNA largely)
-    const carry2025=(tm.wins2025/24)*40; // fraction of races won in 2025 * 40
+    // F7: Pressure curve
+    const pressureMult=champPos===1?0.94:champPos<=3?1.12:champPos<=5?1.08:champPos<=8?1.02:0.96;
 
-    // ── WEIGHTED FEATURE COMBINATION ─────────────────────
-    // 2026 REGULATION OVERHAUL: new aero, new tyres, new engine regs
-    // Historical data (2023-2025) is much less relevant than normal
-    // 2026 form is KING — only 2 races but shows true car pace
-    // Constructor current standing reflects actual 2026 car performance
+    // F8: Team trend
+    const trendMult={surging:1.15,strong:1.07,rising:1.05,solid:1.0,neutral:1.0,fading:0.88,learning:0.82,unknown:0.80}[tm.trend]||1.0;
 
-    // NEW TEAM HIERARCHY from 2026 actual results:
-    // Mercedes P1 98pts, Ferrari P2 67pts, Haas P4 17pts — all surprising
-    // Red Bull P5 12pts — dramatic fall from 2023-2025 dominance
-    // McLaren P3 18pts — strong 2025 but slower 2026 start
-    const reg2026Penalty = {
-      // Teams that regressed vs 2025 performance
-      redbull: 0.75,  // Dominant in 2025, struggling in 2026
-      mclaren: 0.85,  // Won 2025 but only P3 after 2 races in 2026
-      alpine:  0.90,
-      // Teams that improved
-      mercedes: 1.15, // Massive improvement with new regs
-      haas: 1.10,     // Strong early 2026
-      ferrari: 1.05,
-    }[d.team] || 1.0;
-
-    const rawScore=(
-      form2026Norm * 0.40 +      // 40% current 2026 form (NEW REGS — most predictive)
-      constrScore  * 0.25 +      // 25% constructor current 2026 momentum
-      circuitFit   * 0.10 +      // 10% historical circuit type (less relevant post-regs)
-      gridScore    * 0.10 +      // 10% qualifying pace proxy
-      carry2025    * 0.05 +      // 5% 2025 carryover (reduced — new regs reset everything)
-      reliabilityScore * 0.05 +  // 5% reliability
-      racecraftScore   * 0.05    // 5% racecraft (driver skill relatively stable)
-    ) * pressureMult * reg2026Penalty;
-
-    return {
-      id:d.id, sur:d.sur, num:d.num, team:d.team, color:clr,
-      raw:rawScore, form2026Norm, constrScore, circuitFit,
-      gridScore, carry2025, reliabilityScore, racecraftScore,
-      pressureMult, champPos, champPts, constrPos, constrPts,
-      circType, res, tm, hw, dnfRate
-    };
+    const rawScore=(form2026Norm*0.38+constrScore*0.28+gridScore*0.12+histDiscounted*0.08+reliabilityScore*0.07+racecraftScore*0.07)*pressureMult*trendMult;
+    return{id:d.id,sur:d.sur,num:d.num,team:d.team,color:clr,raw:Math.max(0.5,rawScore),
+      form2026Norm,constrScore,histDiscounted,gridScore,reliabilityScore,racecraftScore,
+      pressureMult,trendMult,champPos,champPts,constrPos,constrPts,avgGrid,dnfRate:combinedDnf,tm,hd,res};
   });
 
-  // ── SOFTMAX PROBABILITY CONVERSION ────────────────────
-  // Temperature=8 gives spread — higher temp = more uncertain
   features.sort((a,b)=>b.raw-a.raw);
   const maxR=features[0].raw;
-  const T=8; // temperature parameter
+  const T=Math.max(6,12-S.completedRounds*0.5); // adaptive temperature
   const expS=features.map(f=>Math.exp((f.raw-maxR)/T));
   const sumE=expS.reduce((a,b)=>a+b,0);
-  const winProbs=expS.map(e=>e/sumE*100);
-
-  // Podium = sum of top-3 individual win probs normalized
-  const podProbs=features.map((_,i)=>{
-    const p1=winProbs[i], p2=winProbs[Math.min(i+1,features.length-1)], p3=winProbs[Math.min(i+2,features.length-1)];
-    return Math.min(99,p1+p2*0.4+p3*0.2);
-  });
-
+  const wP=expS.map(e=>Math.min(99.9,e/sumE*100));
+  const podP=features.map((_,i)=>Math.min(99,wP[i]*2.2+wP[Math.min(i+1,features.length-1)]*0.3));
   const w=features[0];
 
-  // ── RENDER ────────────────────────────────────────────
-  setHtml('pred-banner',`
-    <div class="pred-banner">
-      <div>
-        <div class="pb-label">ML MODEL · ${circType.toUpperCase()} CIRCUIT · ${tRace.name.toUpperCase()}</div>
-        <div class="pb-name" style="color:${w.color}">${w.sur}</div>
-        <div class="pb-conf">${winProbs[0].toFixed(1)}% win probability</div>
-        <div style="display:flex;gap:12px;margin-top:8px;font-size:9px;color:var(--text-3)">
-          <span>Constructor: P${w.constrPos} · ${w.constrPts}pts</span>
-          <span>Driver: P${w.champPos} · ${w.champPts}pts</span>
-          <span>Team form: ${w.tm.trend.toUpperCase()}</span>
-          <span>Circuit wins: ${w.hw[circType]||0}</span>
-        </div>
-      </div>
-      <div style="font-size:42px;margin-left:auto">🏆</div>
-    </div>`);
+  setHtml('pred-banner',`<div class="pred-banner"><div><div class="pb-label">ML v2 · ${circType.toUpperCase()} · R${tRound} · T=${T.toFixed(1)}</div><div class="pb-name" style="color:${w.color}">${w.sur}</div><div class="pb-conf">${wP[0].toFixed(1)}% win probability</div><div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap"><span style="font-size:9px;color:var(--text-3)">Constructor P${w.constrPos} · ${w.constrPts}pts</span><span style="font-size:9px;color:var(--text-3)">Driver P${w.champPos} · ${w.champPts}pts</span><span style="font-size:9px;color:${w.tm.trend==='surging'?'var(--green)':w.tm.trend==='fading'?'var(--red)':'var(--text-3)'}">${w.tm.trend.toUpperCase()}</span><span style="font-size:9px;color:var(--text-3)">DNF risk ${(w.dnfRate*100).toFixed(0)}%</span></div></div><div style="font-size:42px;margin-left:auto">🏆</div></div>`);
 
-  setHtml('pred-wins',features.slice(0,12).map((f,i)=>`
-    <div class="pred-row">
-      <div class="pred-rk" style="${i<3?'color:'+['var(--gold)','#C8C8C8','#CD7F32'][i]:''}">${i+1}</div>
-      <div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div>
-      <div class="pred-nm">${f.sur}</div>
-      <div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden">
-        <div style="width:${winProbs[i]}%;height:100%;background:${f.color};border-radius:2px"></div>
-      </div>
-      <div class="pred-pct" style="color:${f.color}">${winProbs[i].toFixed(1)}%</div>
-    </div>`).join(''));
+  setHtml('pred-wins',features.slice(0,12).map((f,i)=>`<div class="pred-row"><div class="pred-rk" style="${i<3?'color:'+['var(--gold)','#C8C8C8','#CD7F32'][i]:''}">${i+1}</div><div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div class="pred-nm">${f.sur}</div><div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${wP[i]}%;height:100%;background:${f.color};border-radius:2px"></div></div><div class="pred-pct" style="color:${f.color}">${wP[i].toFixed(1)}%</div></div>`).join(''));
+  setHtml('pred-pods',features.slice(0,12).map((f,i)=>`<div class="pred-row"><div class="pred-rk">${i+1}</div><div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div class="pred-nm">${f.sur}</div><div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${Math.min(podP[i],99)}%;height:100%;background:${f.color};border-radius:2px"></div></div><div class="pred-pct" style="color:${f.color}">${podP[i].toFixed(0)}%</div></div>`).join(''));
 
-  setHtml('pred-pods',features.slice(0,12).map((f,i)=>`
-    <div class="pred-row">
-      <div class="pred-rk">${i+1}</div>
-      <div style="width:7px;height:7px;border-radius:50%;background:${f.color};flex-shrink:0"></div>
-      <div class="pred-nm">${f.sur}</div>
-      <div style="flex:1;height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden">
-        <div style="width:${podProbs[i]}%;height:100%;background:${f.color};border-radius:2px"></div>
-      </div>
-      <div class="pred-pct" style="color:${f.color}">${podProbs[i].toFixed(0)}%</div>
-    </div>`).join(''));
-
-  // Recent form (last 3 races)
   setHtml('pred-form',features.slice(0,10).map(f=>{
     const last3=f.res.slice(-3);
-    const dots=last3.map(r=>{
-      const c=r.pos===1?'var(--gold)':r.pos<=3?'var(--green)':r.pos<=10?f.color+'99':r.status==='Retired'?'var(--red)':'rgba(255,255,255,0.07)';
-      const lbl=r.status==='Retired'?'R':'P'+r.pos;
-      return`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:3px;background:${c};font-size:8px;font-weight:800;color:${r.pos===1?'#000':'#fff'};margin-right:3px">${lbl}</span>`;
-    }).join('');
-    const trendIcon=f.tm.trend==='peak'?'🔥':f.tm.trend==='rising'?'📈':f.tm.trend==='fading'?'📉':'➡';
-    return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--line);font-size:10px">
-      <div style="width:6px;height:6px;border-radius:50%;background:${f.color};flex-shrink:0"></div>
-      <div style="width:68px;font-weight:600">${f.sur}</div>
-      <div>${dots||'<span style="color:var(--text-3);font-size:9px">No data</span>'}</div>
-      <div style="margin-left:auto;font-size:9px">${trendIcon}</div>
-    </div>`;
+    const dots=last3.map(r=>{const c=r.pos===1?'var(--gold)':r.pos<=3?'var(--green)':r.pos<=10?f.color+'99':r.status==='Retired'?'var(--red)':'rgba(255,255,255,0.07)';return`<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:3px;background:${c};font-size:8px;font-weight:800;color:${r.pos<=3?'#000':'#fff'};margin-right:3px">${r.status==='Retired'?'R':'P'+r.pos}</span>`;}).join('');
+    const ti=f.tm.trend==='surging'?'🔥':f.tm.trend==='strong'?'⚡':f.tm.trend==='rising'?'📈':f.tm.trend==='fading'?'📉':'➡';
+    return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--line);font-size:10px"><div style="width:6px;height:6px;border-radius:50%;background:${f.color};flex-shrink:0"></div><div style="width:68px;font-weight:600">${f.sur}</div><div>${dots||'<span style="color:var(--text-3);font-size:9px">No data</span>'}</div><div style="margin-left:auto;font-size:9px;display:flex;align-items:center;gap:4px">${ti} <span style="color:var(--text-3)">${f.avgGrid.toFixed(1)}</span></div></div>`;
   }).join(''));
 
-  // Model factors breakdown for winner
-  const factorData=[
-    {l:'2026 Form (25%)',      v:w.form2026Norm.toFixed(1),    max:100, cls:w.form2026Norm>50?'fac-pos':'fac-neu'},
-    {l:'Constructor Power (30%)',v:w.constrScore.toFixed(1),   max:140, cls:w.constrScore>70?'fac-pos':'fac-neu'},
-    {l:'Circuit Type Fit (15%)',v:w.circuitFit.toFixed(1),     max:200, cls:w.circuitFit>50?'fac-pos':'fac-neu'},
-    {l:'Qualifying Pace (10%)', v:w.gridScore.toFixed(1),      max:160, cls:w.gridScore>80?'fac-pos':'fac-neu'},
-    {l:'2025 Carryover (10%)',  v:w.carry2025.toFixed(1),      max:40,  cls:w.carry2025>15?'fac-pos':'fac-neu'},
-    {l:'Reliability (5%)',      v:((1-w.dnfRate)*100).toFixed(0)+'%', max:100, cls:w.dnfRate<0.1?'fac-pos':'fac-neg'},
-    {l:'Racecraft (5%)',        v:(w.racecraftScore>0?'+':'')+w.racecraftScore.toFixed(1), max:30, cls:w.racecraftScore>0?'fac-pos':'fac-neg'},
-    {l:'Pressure Multiplier',   v:'×'+w.pressureMult.toFixed(2), max:1.3, cls:w.pressureMult>=1?'fac-pos':'fac-neg'},
-    {l:'Raw ML Score',          v:w.raw.toFixed(1), max:999, cls:'fac-neu'},
-  ];
-  setHtml('pred-factors',`
-    <div style="font-size:9px;color:var(--text-3);margin-bottom:8px">ML feature weights for <span style="color:${w.color}">${w.sur}</span></div>
-    ${factorData.map(f=>`
-      <div class="fac-row">
-        <span class="fac-lbl">${f.l}</span>
-        <span class="${f.cls}" style="font-family:var(--font-mono);font-size:10px;font-weight:700">${f.v}</span>
-      </div>`).join('')}
-  `);
+  setHtml('pred-factors',`<div style="font-size:9px;color:var(--text-3);margin-bottom:8px">Score breakdown for <span style="color:${w.color}">${w.sur}</span> (raw ${w.raw.toFixed(1)})</div>${
+    [{l:'2026 Form (38%)',v:w.form2026Norm.toFixed(1),pct:w.form2026Norm},{l:'Constructor 2026 (28%)',v:w.constrScore.toFixed(1),pct:w.constrScore},{l:'Grid Pace (12%)',v:w.gridScore.toFixed(1),pct:w.gridScore/60*100},{l:'Historical Fit (8%)',v:w.histDiscounted.toFixed(1),pct:Math.min(100,w.histDiscounted/30*100)},{l:'Reliability (7%)',v:w.reliabilityScore.toFixed(1),pct:w.reliabilityScore/25*100},{l:'Racecraft (7%)',v:(w.racecraftScore>0?'+':'')+w.racecraftScore.toFixed(1),pct:(w.racecraftScore+15)/40*100},{l:'Pressure ×',v:'×'+w.pressureMult.toFixed(2),pct:(w.pressureMult-0.9)/0.25*100},{l:'Team Trend ×',v:'×'+w.trendMult.toFixed(2),pct:(w.trendMult-0.8)/0.4*100}].map(f=>`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span style="color:var(--text-3)">${f.l}</span><span style="font-family:var(--font-mono);font-weight:700">${f.v}</span></div><div style="height:3px;background:var(--glass-2);border-radius:2px;overflow:hidden"><div style="width:${Math.max(0,Math.min(100,f.pct))}%;height:100%;background:${w.color};border-radius:2px"></div></div></div>`).join('')
+  }`);
 
-  // Constructor momentum chart data
   const gainData=DRV_S.map(d=>{const r=S.drvRaceResults[d.id]||[];if(!r.length)return null;const ag=r.reduce((a,x)=>a+(x.grid?x.grid-x.pos:0),0)/r.length;return{sur:d.sur,color:TEAMS_S[d.team].color,ag};}).filter(Boolean).sort((a,b)=>b.ag-a.ag).slice(0,12);
   const mg=Math.max(...gainData.map(d=>Math.abs(d.ag)),1);
   setHtml('pred-gains',gainData.map(d=>`<div class="gl-row"><div class="gl-n">${d.sur}</div><div class="gl-bw"><div class="gl-b" style="width:${Math.abs(d.ag)/mg*100}%;background:${d.ag>0?'var(--green)':'var(--red)'}"></div></div><div class="gl-v" style="color:${d.ag>0?'var(--green)':'var(--red)'}">${d.ag>0?'+':''}${d.ag.toFixed(1)}</div></div>`).join(''));
 
-  // Strategy outlook with circuit-specific insights
-  const strats={
-    street:{
-      bullets:['1-stop most likely: Medium→Hard','Safety car probability VERY HIGH — strategy timing critical','Undercut less effective: pit lane slow','Ferrari and Mercedes historically strong','Track evolution massive — later qualifiers disadvantaged']
-    },
-    power:{
-      bullets:['1-stop standard: Hard tyre preferred','DRS long straights → qualifying crucial for clean air','Tyre deg moderate: undercut window laps 20-30','Mercedes and McLaren engine advantage shows here','Low fuel differential: raw pace determines outcome']
-    },
-    technical:{
-      bullets:['2-stop possible if high tyre deg','Overcut strategy valid for top 5','Red Bull and McLaren aero efficiency advantages','Sector 2 slow corners critical for lap time','Track position less important: overtaking feasible']
-    },
-    mixed:{
-      bullets:['1-stop most likely: Medium→Hard','VSC/SC likelihood moderate — stay alert','Weather changes can flip strategy','Circuit evolution favours Q3 time','All compounds viable depending on pace delta']
-    }
-  };
+  const strats={street:['Safety car probability VERY HIGH','Track position critical — undercut difficult','Ferrari & Mercedes historically strong','Grid position outweighs race pace'],power:['DRS decisive — qualifying critical','McLaren & Mercedes engine advantage','1-stop Hard optimal','Overtaking viable on main straight'],technical:['High tyre deg — 2-stop viable','Aero efficiency key in slow corners','Undercut/overcut both valid','Red Bull & McLaren aero strength'],mixed:['1-stop most likely: Medium→Hard','Weather adds uncertainty','DRS available — overtaking possible','Track evolution matters']};
   const s=strats[circType]||strats.mixed;
-  setHtml('pred-strat',`
-    <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
-      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)">${circType.toUpperCase()} CIRCUIT</div>
-      <div class="tag" style="font-size:8px">Temperature T=${T}</div>
-    </div>
-    ${s.bullets.map(b=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px;color:var(--text-2)"><span style="color:var(--red);flex-shrink:0">›</span>${b}</div>`).join('')}
-    <div style="margin-top:12px;padding:10px;background:var(--glass-1);border-radius:var(--r-sm);border:1px solid var(--line)">
-      <div style="font-size:9px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Team Momentum</div>
-      ${Object.entries(TEAM_MOMENTUM).slice(0,6).map(([tid,tm])=>{const t=TEAMS_S[tid];if(!t)return'';const icon=tm.trend==='peak'?'🔥':tm.trend==='rising'?'📈':tm.trend==='fading'?'📉':'➡';return`<div style="display:flex;align-items:center;gap:7px;font-size:10px;padding:2px 0"><div style="width:5px;height:5px;border-radius:50%;background:${t.color}"></div><div style="flex:1">${t.name}</div><span>${icon}</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--text-3)">${tm.score}</span></div>`;}).join('')}
-    </div>`);
+  setHtml('pred-strat',`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)">${circType.toUpperCase()} CIRCUIT</div><div class="tag" style="font-size:8px">T=${T.toFixed(1)} · ${S.completedRounds} races done</div></div>${s.map(b=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:11px;color:var(--text-2)"><span style="color:var(--red);flex-shrink:0">›</span>${b}</div>`).join('')}<div style="margin-top:12px;padding:10px;background:var(--glass-1);border-radius:var(--r-sm);border:1px solid var(--line)"><div style="font-size:8px;color:var(--text-3);letter-spacing:1px;margin-bottom:6px">2026 TEAM MOMENTUM</div>${Object.entries(TEAM_MOM_2026).slice(0,7).map(([tid,tm])=>{const t2=TEAMS_S[tid];if(!t2)return'';const ti2=tm.trend==='surging'?'🔥':tm.trend==='strong'?'⚡':tm.trend==='rising'?'📈':tm.trend==='fading'?'📉':'➡';return`<div style="display:flex;align-items:center;gap:7px;font-size:10px;padding:2px 0"><div style="width:5px;height:5px;border-radius:50%;background:${t2.color}"></div><div style="flex:1">${t2.name}</div><span>${ti2}</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--text-3)">${tm.pts2026}pts</span></div>`;}).join('')}</div>`);
 }
 
-// Alias so HTML button still works
-const runPredictor = runMLPredictor;
-
-/* ═══════════════════════════════════════
-   MODAL
-═══════════════════════════════════════ */
-function showModal(sch,race) {
-  setText('modal-title',(sch.flag||'')+' '+race.raceName);
-  const rows=race.Results.map(r=>{
-    const pos=parseInt(r.position), pc=pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
-    const clr=TEAMCOL[r.Constructor.name]||'#666';
-    const isFL=r.FastestLap&&r.FastestLap.rank==='1';
-    return`<div style="display:grid;grid-template-columns:28px 22px 1fr 1fr 46px;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px">
-      <span class="dt-pos ${pc}" style="font-size:18px">${pos}</span>
-      <span style="font-size:9px;color:var(--text-3)">#${r.Driver.permanentNumber}</span>
-      <div><div style="font-weight:500">${isFL?'<span class="fl">FL</span>':' '}${r.Driver.givenName} ${r.Driver.familyName}</div><div style="font-size:9px;color:var(--text-3)">${r.status}</div></div>
-      <div style="font-size:10px" class="dot" style="background:${clr}"> ${r.Constructor.name}</div>
-      <div style="font-family:var(--font-display);font-weight:800;font-size:16px;text-align:right;${pos<=3?'color:'+clr:''}">${r.points}<span style="font-size:9px;color:var(--text-3)"> pts</span></div>
-    </div>`;
-  }).join('');
-  setHtml('modal-b',`<div style="font-size:9px;color:var(--text-3);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-family:var(--font-mono)">Round ${race.round} · ${race.date}${race.Circuit?' · '+race.Circuit.circuitName:''}</div>${rows}`);
-  const ov=document.getElementById('modal-overlay'); if(ov) ov.classList.add('on');
-}
-function closeModal(){const ov=document.getElementById('modal-overlay');if(ov)ov.classList.remove('on');}
-function jumpDrv(num){goto('drivers');const id=NUM_ID[parseInt(num)];if(id)setTimeout(()=>loadDriver(id),50);}
-
-/* ═══════════════════════════════════════
-   CLOCK + INIT
-═══════════════════════════════════════ */
-(()=>{function tick(){const el=document.getElementById('clock');if(!el)return;const n=new Date(),p=v=>String(v).padStart(2,'0');el.textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());}tick();setInterval(tick,1000);})();
-
-function populateSelectors() {
-  const of1Opts=OF1_RACES_2026.map(r=>`<option value="${r.key}">${r.flag} R${r.round} ${r.country} (${r.date})</option>`).join('');
-  ['live-sess','t-sess'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.dataset.pop){el.innerHTML=of1Opts;el.dataset.pop='1';}});
-  const drvOpts=DRV_S.map(d=>`<option value="${d.num}">${d.flag} #${d.num} ${d.sur}</option>`).join('');
-  const td=document.getElementById('t-drv');if(td&&!td.dataset.pop){td.innerHTML=drvOpts;td.value='63';td.dataset.pop='1';}
-  const td2=document.getElementById('t-drv2');if(td2&&!td2.dataset.pop){td2.innerHTML='<option value="">vs. driver</option>'+drvOpts;td2.dataset.pop='1';}
-  const ps=document.getElementById('pred-sel');
-  if(ps){const up=S.schedule.filter(r=>r.status==='next'||r.status==='upcoming');ps.innerHTML=up.map(r=>`<option value="${r.round}">${r.flag} R${r.round} ${r.country}</option>`).join('');}
-}
-
-window.addEventListener('load',()=>{
-  renderDrvSidebar();
-  buildMap();
-  boot().then(()=>{
-    populateSelectors();
-    setInterval(()=>boot(),5*60*1000);
-  });
-});
-
-</script>
-</body>
-</html>
+// Alias
+const runPredictor = runMLPredictor;>
